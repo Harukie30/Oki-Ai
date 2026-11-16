@@ -87,27 +87,25 @@ export function LandingPage() {
 
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-8 sm:py-5">
         <OkiAiLogo size="sm" className="sm:h-8" />
-        <nav className="flex min-w-0 items-center gap-3 sm:gap-5">
+        <nav className="hidden min-w-0 items-center gap-5 md:flex">
           <a
             href="#how-it-works"
-            className="hidden text-sm font-medium text-teal-900/65 transition-colors hover:text-teal-900 md:inline"
+            className="text-sm font-medium text-teal-900/65 transition-colors hover:text-teal-900"
           >
             How it works
           </a>
           <a
             href="#focus"
-            className="hidden text-sm font-medium text-teal-900/65 transition-colors hover:text-teal-900 md:inline"
+            className="text-sm font-medium text-teal-900/65 transition-colors hover:text-teal-900"
           >
             What we check
           </a>
-          <Button
-            variant="outline"
-            size="sm"
-            nativeButton={false}
-            render={<Link href="/review" />}
+          <a
+            href="#start-review"
+            className="text-sm font-medium text-teal-900/65 transition-colors hover:text-teal-900"
           >
-            Open review
-          </Button>
+            Start reviewing
+          </a>
         </nav>
       </header>
 
@@ -130,21 +128,6 @@ export function LandingPage() {
                 Instant AI code review for bugs, security, and style — with a
                 clear path to real analysis when you are ready.
               </p>
-              <div className="mt-6 sm:mt-8">
-                <Button
-                  size="lg"
-                  className="w-full bg-teal-600 text-white hover:bg-teal-500 sm:w-auto"
-                  nativeButton={false}
-                  render={<Link href="/review" />}
-                >
-                  Start reviewing
-                  <HugeiconsIcon
-                    icon={ArrowRight01Icon}
-                    strokeWidth={2}
-                    data-icon="inline-end"
-                  />
-                </Button>
-              </div>
             </div>
 
             <div className="relative min-w-0 animate-in fade-in zoom-in-95 duration-1000">
@@ -365,8 +348,11 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* Closing CTA */}
-        <section className="group/cta relative isolate overflow-hidden border-t border-teal-900/8 bg-teal-950 text-teal-50">
+        {/* Closing CTA — primary entry to review */}
+        <section
+          id="start-review"
+          className="group/cta relative isolate scroll-mt-16 overflow-hidden border-t border-teal-900/8 bg-teal-950 text-teal-50 sm:scroll-mt-20"
+        >
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_120%_at_0%_50%,rgba(45,212,191,0.22),transparent_55%)] opacity-40 transition-opacity duration-700 ease-out group-has-[[data-cta]:hover]/cta:opacity-100 group-has-[[data-cta]:focus-visible]/cta:opacity-100"
@@ -400,7 +386,7 @@ export function LandingPage() {
                 nativeButton={false}
                 render={<Link href="/review" data-cta="" />}
               >
-                Open the demo
+                Start reviewing
                 <HugeiconsIcon
                   icon={ArrowRight01Icon}
                   strokeWidth={2}
@@ -429,12 +415,12 @@ export function LandingPage() {
                   <p className="font-medium text-teal-950">Product</p>
                   <ul className="space-y-1.5 text-teal-950/60">
                     <li>
-                      <Link
-                        href="/review"
+                      <a
+                        href="#start-review"
                         className="transition-colors hover:text-teal-800"
                       >
-                        Review workspace
-                      </Link>
+                        Start reviewing
+                      </a>
                     </li>
                     <li>
                       <a
