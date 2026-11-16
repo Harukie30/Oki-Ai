@@ -380,22 +380,39 @@ export function LandingPage() {
         </section>
 
         {/* Closing CTA */}
-        <section className="border-t border-teal-900/8 bg-teal-950 text-teal-50">
-          <div className="mx-auto flex w-full max-w-6xl flex-col items-stretch gap-6 px-4 py-12 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:px-8 sm:py-20">
+        <section className="group/cta relative isolate overflow-hidden border-t border-teal-900/8 bg-teal-950 text-teal-50">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_120%_at_0%_50%,rgba(45,212,191,0.22),transparent_55%)] opacity-40 transition-opacity duration-700 ease-out group-has-[[data-cta]:hover]/cta:opacity-100 group-has-[[data-cta]:focus-visible]/cta:opacity-100"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 left-0 w-[70%] -translate-x-[108%] bg-gradient-to-r from-teal-700/80 via-teal-500/35 to-transparent transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-has-[[data-cta]:hover]/cta:translate-x-0 group-has-[[data-cta]:focus-visible]/cta:translate-x-0"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-[-20%] left-0 w-[42%] -translate-x-[130%] skew-x-[-18deg] bg-gradient-to-r from-transparent via-teal-200/30 to-transparent opacity-0 blur-md transition-[transform,opacity] duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-has-[[data-cta]:hover]/cta:translate-x-[220%] group-has-[[data-cta]:hover]/cta:opacity-100 group-has-[[data-cta]:focus-visible]/cta:translate-x-[220%] group-has-[[data-cta]:focus-visible]/cta:opacity-100"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-700 group-has-[[data-cta]:hover]/cta:opacity-[0.22] group-has-[[data-cta]:focus-visible]/cta:opacity-[0.22] [background-image:linear-gradient(rgba(153,246,228,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(153,246,228,0.14)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:linear-gradient(90deg,black_0%,transparent_75%)]"
+          />
+
+          <div className="relative mx-auto flex w-full max-w-6xl flex-col items-stretch gap-6 px-4 py-12 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:px-8 sm:py-20">
             <Reveal variant="up" className="max-w-lg" delayMs={60}>
-              <h2 className="text-2xl font-semibold tracking-tight sm:text-4xl">
+              <h2 className="text-2xl font-semibold tracking-tight transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-has-[[data-cta]:hover]/cta:translate-x-1 sm:text-4xl">
                 Ready to review a snippet?
               </h2>
-              <p className="mt-3 text-sm leading-relaxed text-teal-100/70 sm:text-base">
+              <p className="mt-3 text-sm leading-relaxed text-teal-100/70 transition-colors duration-700 group-has-[[data-cta]:hover]/cta:text-teal-50/85 sm:text-base">
                 Open the workspace, paste code, and see findings in seconds.
               </p>
             </Reveal>
             <Reveal variant="scale" delayMs={220} className="w-full sm:w-auto">
               <Button
                 size="lg"
-                className="w-full bg-teal-400 text-teal-950 hover:bg-teal-300 sm:w-auto"
+                className="relative z-10 w-full bg-teal-400 text-teal-950 shadow-[0_0_0_0_rgba(45,212,191,0)] transition-[background-color,box-shadow,transform] duration-500 hover:bg-teal-300 hover:shadow-[0_0_36px_-4px_rgba(45,212,191,0.65)] sm:w-auto"
                 nativeButton={false}
-                render={<Link href="/review" />}
+                render={<Link href="/review" data-cta="" />}
               >
                 Open the demo
                 <HugeiconsIcon
