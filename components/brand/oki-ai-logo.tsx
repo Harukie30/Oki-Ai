@@ -54,7 +54,13 @@ export function OkiAiLogo({
   return (
     <Link
       href={href}
-      className="inline-flex shrink-0 items-center rounded-xl px-1.5 py-1 transition-[background-color,transform] duration-200 ease-out hover:bg-teal-200/80 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+      className={cn(
+        "group relative inline-flex shrink-0 items-center rounded-full px-2 py-1.5",
+        "transition-[transform,box-shadow,background-color] duration-300 ease-out",
+        "hover:scale-[1.03] hover:bg-lime-200/70",
+        "hover:shadow-[0_0_0_4px_rgba(190,242,100,0.35),0_0_28px_10px_rgba(163,230,53,0.45),0_0_48px_18px_rgba(132,204,22,0.25)]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400/60"
+      )}
       aria-label="Oki-Ai home"
     >
       {image}
