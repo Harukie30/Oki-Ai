@@ -130,7 +130,7 @@ export function LandingPage() {
                 Instant AI code review for bugs, security, and style — with a
                 clear path to real analysis when you are ready.
               </p>
-              <div className="mt-6 flex w-full flex-col gap-3 sm:mt-8 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+              <div className="mt-6 sm:mt-8">
                 <Button
                   size="lg"
                   className="w-full bg-teal-600 text-white hover:bg-teal-500 sm:w-auto"
@@ -143,20 +143,6 @@ export function LandingPage() {
                     strokeWidth={2}
                     data-icon="inline-end"
                   />
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="w-full sm:w-auto"
-                  nativeButton={false}
-                  render={<Link href="/review" />}
-                >
-                  <HugeiconsIcon
-                    icon={FlashIcon}
-                    strokeWidth={2}
-                    data-icon="inline-start"
-                  />
-                  Try the demo
                 </Button>
               </div>
             </div>
