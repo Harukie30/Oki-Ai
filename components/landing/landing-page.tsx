@@ -2,10 +2,12 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Reveal } from "@/components/landing/reveal"
+import { cn } from "@/lib/utils"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   ArrowRight01Icon,
   Bug01Icon,
+  CheckmarkCircle02Icon,
   FlashIcon,
   SecurityCheckIcon,
   SourceCodeIcon,
@@ -19,18 +21,24 @@ const STEPS = [
     title: "Paste your code",
     detail:
       "Drop in a snippet and pick the language. No setup, no repo sync required.",
+    icon: SourceCodeIcon,
+    cue: "snippet → language",
   },
   {
     step: "02",
     title: "Run the review",
     detail:
       "ok-ai scans for bugs, security risks, style issues, and AI authorship signals.",
+    icon: FlashIcon,
+    cue: "scan in seconds",
   },
   {
     step: "03",
     title: "Fix with confidence",
     detail:
       "Get a score, ranked findings, and clear suggestions you can apply right away.",
+    icon: CheckmarkCircle02Icon,
+    cue: "score · findings · fixes",
   },
 ] as const
 
@@ -40,18 +48,24 @@ const FOCUS = [
     title: "Bugs & edge cases",
     detail:
       "Catch missing awaits, unchecked responses, and risky control-flow patterns.",
+    cue: "runtime · edge cases",
+    accent: "from-teal-500/20 to-teal-500/5 text-teal-800",
   },
   {
     icon: SecurityCheckIcon,
     title: "Security signals",
     detail:
       "Flag unsafe evaluation, weak input handling, and unsafe path construction.",
+    cue: "auth · input · paths",
+    accent: "from-cyan-500/20 to-cyan-500/5 text-cyan-900",
   },
   {
     icon: SourceCodeIcon,
     title: "Style & clarity",
     detail:
       "Surface typing gaps, readability nits, and small refactors that compound.",
+    cue: "types · readability",
+    accent: "from-emerald-500/20 to-emerald-500/5 text-emerald-900",
   },
 ] as const
 
@@ -208,34 +222,90 @@ export function LandingPage() {
         {/* How it works */}
         <section
           id="how-it-works"
-          className="scroll-mt-16 border-t border-teal-900/8 bg-white/40 backdrop-blur-sm sm:scroll-mt-20"
+          className="relative isolate overflow-hidden scroll-mt-16 border-t border-teal-900/8 sm:scroll-mt-20"
         >
-          <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-8 sm:py-24">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(45,212,191,0.18),transparent_58%),linear-gradient(180deg,rgba(255,255,255,0.62)_0%,rgba(240,253,250,0.4)_48%,rgba(236,253,245,0.2)_100%)]"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:linear-gradient(rgba(13,148,136,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(13,148,136,0.07)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(ellipse_at_center,black_28%,transparent_78%)]"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -left-24 top-10 size-[280px] rounded-full bg-teal-300/25 blur-3xl animate-[pulse_8s_ease-in-out_infinite] sm:-left-16 sm:size-[360px]"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-20 bottom-0 size-[260px] rounded-full bg-cyan-300/20 blur-3xl animate-[pulse_10s_ease-in-out_infinite] sm:-right-10 sm:size-[340px]"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-1/2 size-[520px] -translate-x-1/2 -translate-y-[42%] rounded-full border border-teal-500/10 sm:size-[640px]"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-1/2 size-[340px] -translate-x-1/2 -translate-y-[38%] rounded-full border border-dashed border-teal-600/15 sm:size-[420px]"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute right-[12%] top-[18%] hidden size-24 rounded-full border border-teal-500/15 sm:block"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-[10%] bottom-[22%] hidden size-16 rotate-12 rounded-2xl border border-cyan-500/15 sm:block"
+          />
+          <div className="relative mx-auto w-full max-w-6xl px-4 py-16 sm:px-8 sm:py-28">
             <Reveal variant="up" delayMs={40}>
-              <div className="max-w-xl">
-                <h2 className="text-2xl font-semibold tracking-tight text-teal-950 sm:text-4xl">
+              <div className="mx-auto max-w-2xl text-center">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-teal-700/70 sm:text-[11px]">
+                  From paste to clarity
+                </p>
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight text-teal-950 sm:text-4xl">
                   How it works
                 </h2>
-                <p className="mt-3 text-sm leading-relaxed text-teal-950/65 sm:text-base">
+                <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-teal-950/65 sm:text-base">
                   Three steps from paste to actionable findings — built for
                   speed while you prototype, ready for a real model later.
                 </p>
               </div>
             </Reveal>
 
-            <ol className="mt-10 grid gap-8 sm:mt-14 sm:grid-cols-3 sm:gap-8">
+            <ol className="relative mt-12 grid gap-10 sm:mt-16 sm:grid-cols-3 sm:gap-8 lg:gap-12">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute left-[16%] right-[16%] top-[1.75rem] hidden h-px sm:block"
+              >
+                <div className="h-full w-full bg-gradient-to-r from-teal-500/0 via-teal-600/35 to-teal-500/0" />
+                <div className="absolute inset-y-0 left-0 w-1/3 animate-[pulse_3.5s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-teal-400/70 to-transparent blur-[1px]" />
+              </div>
+
               {STEPS.map((item, index) => (
                 <li key={item.step} className="relative">
-                  <Reveal variant="up" delayMs={160 + index * 140}>
-                    <span className="font-mono text-sm font-semibold tracking-[0.18em] text-teal-600/80">
-                      {item.step}
-                    </span>
-                    <h3 className="mt-3 text-lg font-semibold tracking-tight text-teal-950 sm:text-xl">
-                      {item.title}
-                    </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-teal-950/65">
-                      {item.detail}
-                    </p>
+                  <Reveal variant="up" delayMs={160 + index * 150}>
+                    <div className="flex flex-col items-center text-center">
+                      <div className="relative z-10 flex size-14 items-center justify-center rounded-full bg-teal-600 text-white shadow-[0_16px_40px_-16px_rgba(13,148,136,0.75)] ring-4 ring-white/80 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105">
+                        <HugeiconsIcon
+                          icon={item.icon}
+                          strokeWidth={1.75}
+                          className="size-5"
+                        />
+                        <span className="absolute -bottom-1 -right-1 flex size-6 items-center justify-center rounded-full bg-teal-950 font-mono text-[10px] font-semibold text-teal-50">
+                          {item.step}
+                        </span>
+                      </div>
+
+                      <h3 className="mt-6 text-lg font-semibold tracking-tight text-teal-950 sm:text-xl">
+                        {item.title}
+                      </h3>
+                      <p className="mt-2 max-w-[18rem] text-sm leading-relaxed text-teal-950/65">
+                        {item.detail}
+                      </p>
+                      <p className="mt-4 font-mono text-[11px] tracking-[0.14em] text-teal-700/55">
+                        {item.cue}
+                      </p>
+                    </div>
                   </Reveal>
                 </li>
               ))}
@@ -246,41 +316,61 @@ export function LandingPage() {
         {/* What we check */}
         <section
           id="focus"
-          className="scroll-mt-16 sm:scroll-mt-20"
+          className="relative scroll-mt-16 border-t border-teal-900/8 sm:scroll-mt-20"
         >
-          <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-8 sm:py-24">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_80%_20%,rgba(8,145,178,0.12),transparent_55%),radial-gradient(ellipse_60%_50%_at_10%_80%,rgba(16,185,129,0.1),transparent_50%)]"
+          />
+          <div className="relative mx-auto w-full max-w-6xl px-4 py-16 sm:px-8 sm:py-28">
             <Reveal variant="up" delayMs={40}>
-              <div className="max-w-xl">
-                <h2 className="text-2xl font-semibold tracking-tight text-teal-950 sm:text-4xl">
+              <div className="mx-auto max-w-2xl text-center">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-teal-700/70 sm:text-[11px]">
+                  Severity-ranked findings
+                </p>
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight text-teal-950 sm:text-4xl">
                   What we check
                 </h2>
-                <p className="mt-3 text-sm leading-relaxed text-teal-950/65 sm:text-base">
+                <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-teal-950/65 sm:text-base">
                   Every review surfaces a quality score, severity-ranked
                   findings, and an AI authorship likelihood signal.
                 </p>
               </div>
             </Reveal>
 
-            <div className="mt-10 grid gap-8 sm:mt-14 sm:grid-cols-3">
+            <div className="mt-12 grid gap-10 sm:mt-16 sm:grid-cols-3 sm:gap-8 lg:gap-12">
               {FOCUS.map((item, index) => (
                 <Reveal
                   key={item.title}
                   variant="scale"
                   delayMs={140 + index * 150}
                 >
-                  <div className="space-y-3">
-                    <div className="flex size-10 items-center justify-center rounded-2xl bg-teal-600/10 text-teal-800">
+                  <div className="group flex h-full flex-col items-center text-center">
+                    <div
+                      className={cn(
+                        "relative flex size-16 items-center justify-center rounded-[1.35rem] bg-gradient-to-br transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105 group-hover:-translate-y-0.5",
+                        item.accent
+                      )}
+                    >
                       <HugeiconsIcon
                         icon={item.icon}
                         strokeWidth={1.75}
-                        className="size-5"
+                        className="size-6"
                       />
+                      <span className="absolute -left-2 -top-2 font-mono text-[10px] font-semibold tracking-[0.16em] text-teal-700/45">
+                        0{index + 1}
+                      </span>
                     </div>
-                    <h3 className="text-base font-semibold tracking-tight text-teal-950 sm:text-lg">
+
+                    <h3 className="mt-6 text-lg font-semibold tracking-tight text-teal-950 sm:text-xl">
                       {item.title}
                     </h3>
-                    <p className="text-sm leading-relaxed text-teal-950/65">
+                    <p className="mt-2 max-w-[18rem] text-sm leading-relaxed text-teal-950/65">
                       {item.detail}
+                    </p>
+                    <div className="mt-5 h-px w-10 bg-gradient-to-r from-transparent via-teal-600/35 to-transparent transition-all duration-500 group-hover:w-16 group-hover:via-teal-500/60" />
+                    <p className="mt-4 font-mono text-[11px] tracking-[0.14em] text-teal-700/55">
+                      {item.cue}
                     </p>
                   </div>
                 </Reveal>
