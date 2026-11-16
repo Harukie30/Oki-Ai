@@ -27,8 +27,7 @@ interface OkiAiLogoProps {
 }
 
 /**
- * Brand logo from the provided Oki-Ai artwork.
- * Uses mix-blend-multiply so the white canvas drops out on light backgrounds.
+ * Brand logo from the provided Oki-Ai artwork (transparent PNG).
  */
 export function OkiAiLogo({
   size = "md",
@@ -39,16 +38,12 @@ export function OkiAiLogo({
   const dims = sizeMap[size]
   const image = (
     <Image
-      src="/brand/oki-ai-logo.png"
+      src="/brand/okii-ai.png"
       alt="Oki-Ai"
       width={dims.width}
       height={dims.height}
       priority={priority}
-      className={cn(
-        dims.className,
-        "object-contain object-left mix-blend-multiply",
-        className
-      )}
+      className={cn(dims.className, "object-contain object-left", className)}
     />
   )
 
