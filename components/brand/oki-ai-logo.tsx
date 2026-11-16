@@ -59,7 +59,7 @@ export function OkiAiLogo({
   return (
     <Link
       href={href}
-      className="inline-flex shrink-0 items-center transition-opacity hover:opacity-85"
+      className="inline-flex shrink-0 items-center rounded-xl px-1.5 py-1 transition-[background-color,transform] duration-200 ease-out hover:bg-teal-200/80 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
       aria-label="Oki-Ai home"
     >
       {image}
