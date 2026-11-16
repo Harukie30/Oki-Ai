@@ -1,19 +1,18 @@
 "use client"
 
 import { useState } from "react"
-import { HugeiconsIcon } from "@hugeicons/react"
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react"
 import {
   DiscordIcon,
   GithubIcon,
   NewTwitterIcon,
-  type IconSvgObject,
 } from "@hugeicons/core-free-icons"
 import { cn } from "@/lib/utils"
 
 const SOCIAL_LINKS: {
   label: string
   href: string
-  icon: IconSvgObject
+  icon: IconSvgElement
 }[] = [
   {
     label: "GitHub",
