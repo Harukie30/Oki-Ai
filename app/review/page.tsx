@@ -1,3 +1,4 @@
+import { ReviewEntrance } from "@/components/review/review-entrance"
 import { ReviewShell } from "@/components/review/review-shell"
 
 export const metadata = {
@@ -6,5 +7,9 @@ export const metadata = {
 }
 
 export default function ReviewPage() {
-  return <ReviewShell />
+  return (
+    <ReviewEntrance>
+      <ReviewShell />
+    </ReviewEntrance>
+  )
 }
