@@ -49,7 +49,7 @@ const HELPS = [
 
 export function AboutPage() {
   return (
-    <div className="relative flex min-w-0 flex-1 flex-col overflow-x-hidden">
+    <div className="relative flex min-w-0 flex-1 flex-col overflow-x-clip">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_120%_80%_at_12%_-8%,rgba(45,212,191,0.28),transparent_55%),radial-gradient(ellipse_80%_60%_at_90%_10%,rgba(8,145,178,0.14),transparent_50%),linear-gradient(165deg,#f7fffe_0%,#eef8f6_42%,#f5faf9_100%)]"

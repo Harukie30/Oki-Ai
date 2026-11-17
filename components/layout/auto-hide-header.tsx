@@ -5,26 +5,30 @@ import { cn } from "@/lib/utils"
 
 const TOP_REVEAL_PX = 80
 const HIDE_DELAY_MS = 180
-const MOTION =
-  "duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+const MOTION = "duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
 
 interface AutoHideHeaderProps {
   children: ReactNode
   className?: string
   barClassName?: string
-  /** When true, page content shifts down with the nav so it never overlaps. */
+  /** When true, sets --oki-nav-shift so review content can pad down without page scrollbar. */
   pushContent?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 /**
  * Header stays hidden until the pointer nears the top of the viewport
  * (or focuses inside the nav). Always visible on touch / coarse pointers.
+ *
+ * The slide is clipped inside a fixed overflow shell so transform never
+ * expands document scroll overflow (which caused a scrollbar flash).
  */
 export function AutoHideHeader({
   children,
   className,
   barClassName,
   pushContent = false,
+  onOpenChange,
 }: AutoHideHeaderProps) {
   const headerRef = useRef<HTMLElement>(null)
   const hideTimerRef = useRef<number | null>(null)
@@ -132,15 +136,28 @@ export function AutoHideHeader({
 
   const shown = forceVisible || visible
 
+  useEffect(() => {
+    onOpenChange?.(shown)
+  }, [shown, onOpenChange])
+
+  useEffect(() => {
+    if (!pushContent) return
+
+    document.documentElement.style.setProperty(
+      "--oki-nav-shift",
+      shown ? `${headerHeight}px` : "0px"
+    )
+
+    return () => {
+      document.documentElement.style.setProperty("--oki-nav-shift", "0px")
+    }
+  }, [pushContent, shown, headerHeight])
+
   return (
-    <>
-      {pushContent ? (
-        <div
-          aria-hidden
-          className={cn("shrink-0 transition-[height]", MOTION)}
-          style={{ height: shown ? headerHeight : 0 }}
-        />
-      ) : null}
+    <div
+      className="pointer-events-none fixed inset-x-0 top-0 z-50 overflow-hidden"
+      style={{ height: headerHeight }}
+    >
       <header
         ref={headerRef}
         onFocusCapture={() => setVisible(true)}
@@ -152,7 +169,7 @@ export function AutoHideHeader({
           }
         }}
         className={cn(
-          "fixed inset-x-0 top-0 z-50 will-change-transform",
+          "pointer-events-auto w-full will-change-transform",
           "border-b border-teal-900/8 bg-[#f4fbfa]/90 shadow-[0_16px_48px_-28px_rgba(8,60,70,0.4)] backdrop-blur-md",
           forceVisible
             ? "translate-y-0"
@@ -177,6 +194,6 @@ export function AutoHideHeader({
           {children}
         </div>
       </header>
-    </>
+    </div>
   )
 }

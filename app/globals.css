@@ -129,12 +129,69 @@
   }
 }
 
+/* Soft mint + teal page scrollbar (landing / about vibe).
+   color-scheme:light stops Windows dark-mode from forcing a gray system bar. */
+:root {
+  color-scheme: light;
+  scrollbar-width: thin;
+  scrollbar-color: #2dd4bf #e8f4f2;
+}
+
+html,
+body {
+  color-scheme: light;
+  scrollbar-width: thin;
+  scrollbar-color: #2dd4bf #e8f4f2;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+  background: #e8f4f2;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: #e8f4f2;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background: #2dd4bf;
+  border-radius: 999px;
+  border: 3px solid #e8f4f2;
+  background-clip: padding-box;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+  background: #14b8a6;
+  border: 3px solid #e8f4f2;
+  background-clip: padding-box;
+}
+
+html::-webkit-scrollbar-corner,
+body::-webkit-scrollbar-corner {
+  background: #e8f4f2;
+}
+
 @keyframes scan {
   0% {
     transform: translateX(-120%);
   }
   100% {
     transform: translateX(220%);
+  }
+}
+
+@keyframes oki-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(6deg);
+  }
+  50% {
+    transform: translate3d(4%, 3%, 0) rotate(0deg);
   }
 }
 

@@ -1,12 +1,10 @@
 import Image from "next/image"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Reveal } from "@/components/landing/reveal"
 import { cn } from "@/lib/utils"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
-  ArrowRight01Icon,
   Bug01Icon,
   CheckmarkCircle02Icon,
   LanguageCircleIcon,
@@ -14,6 +12,7 @@ import {
   SourceCodeIcon,
 } from "@hugeicons/core-free-icons"
 import { SocialLinks } from "@/components/landing/social-links"
+import { CtaBand } from "@/components/landing/cta-band"
 import { OkiAiLogo } from "@/components/brand/oki-ai-logo"
 import { AutoHideHeader } from "@/components/layout/auto-hide-header"
 
@@ -71,9 +70,15 @@ const FOCUS = [
   },
 ] as const
 
+const NAV_LINK =
+  "group relative inline-block text-sm font-medium text-teal-900/65 transition-[color,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:text-teal-950 after:pointer-events-none after:absolute after:inset-x-0 after:-bottom-1 after:h-[1.5px] after:origin-left after:scale-x-0 after:rounded-full after:bg-gradient-to-r after:from-teal-400 after:to-teal-600 after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.22,1,0.36,1)] hover:after:scale-x-100 focus-visible:outline-none focus-visible:text-teal-950 focus-visible:after:scale-x-100"
+
+const FOOTER_LINK =
+  "group relative inline-block text-teal-950/60 transition-[color,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:text-teal-950 after:pointer-events-none after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:scale-x-0 after:rounded-full after:bg-gradient-to-r after:from-teal-400 after:to-teal-600 after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.22,1,0.36,1)] hover:after:scale-x-100 focus-visible:outline-none focus-visible:text-teal-950 focus-visible:after:scale-x-100"
+
 export function LandingPage() {
   return (
-    <div className="relative flex min-w-0 flex-1 flex-col overflow-x-hidden">
+    <div className="relative flex min-w-0 flex-1 flex-col overflow-x-clip">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_120%_80%_at_10%_-10%,_rgba(45,212,191,0.35),_transparent_55%),radial-gradient(ellipse_90%_70%_at_90%_10%,_rgba(8,145,178,0.2),_transparent_50%),linear-gradient(165deg,#f7fffe_0%,#e8f7f4_38%,#f3faf8_72%,#eef6f4_100%)]"
@@ -102,29 +107,17 @@ export function LandingPage() {
 
       <AutoHideHeader>
         <OkiAiLogo size="sm" className="sm:h-8" />
-        <nav className="hidden min-w-0 items-center gap-5 md:flex">
-          <Link
-            href="/about"
-            className="text-sm font-medium text-teal-900/65 transition-colors hover:text-teal-900"
-          >
+        <nav className="hidden min-w-0 items-center gap-6 md:flex">
+          <Link href="/about" className={NAV_LINK}>
             About
           </Link>
-          <a
-            href="#how-it-works"
-            className="text-sm font-medium text-teal-900/65 transition-colors hover:text-teal-900"
-          >
+          <a href="#how-it-works" className={NAV_LINK}>
             How it works
           </a>
-          <a
-            href="#focus"
-            className="text-sm font-medium text-teal-900/65 transition-colors hover:text-teal-900"
-          >
+          <a href="#focus" className={NAV_LINK}>
             What we check
           </a>
-          <a
-            href="#start-review"
-            className="text-sm font-medium text-teal-900/65 transition-colors hover:text-teal-900"
-          >
+          <a href="#start-review" className={NAV_LINK}>
             Start reviewing
           </a>
         </nav>
@@ -369,58 +362,28 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* Closing CTA — primary entry to review */}
-        <section
-          id="start-review"
-          className="group/cta relative isolate scroll-mt-16 overflow-hidden border-t border-teal-900/8 bg-teal-950 text-teal-50 sm:scroll-mt-20"
-        >
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_120%_at_0%_50%,rgba(45,212,191,0.22),transparent_55%)] opacity-40 transition-opacity duration-700 ease-out group-has-[[data-cta]:hover]/cta:opacity-100 group-has-[[data-cta]:focus-visible]/cta:opacity-100"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-y-0 left-0 w-[70%] -translate-x-[108%] bg-gradient-to-r from-teal-700/80 via-teal-500/35 to-transparent transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-has-[[data-cta]:hover]/cta:translate-x-0 group-has-[[data-cta]:focus-visible]/cta:translate-x-0"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-y-[-20%] left-0 w-[42%] -translate-x-[130%] skew-x-[-18deg] bg-gradient-to-r from-transparent via-teal-200/30 to-transparent opacity-0 blur-md transition-[transform,opacity] duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-has-[[data-cta]:hover]/cta:translate-x-[220%] group-has-[[data-cta]:hover]/cta:opacity-100 group-has-[[data-cta]:focus-visible]/cta:translate-x-[220%] group-has-[[data-cta]:focus-visible]/cta:opacity-100"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-700 group-has-[[data-cta]:hover]/cta:opacity-[0.22] group-has-[[data-cta]:focus-visible]/cta:opacity-[0.22] [background-image:linear-gradient(rgba(153,246,228,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(153,246,228,0.14)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:linear-gradient(90deg,black_0%,transparent_75%)]"
-          />
-
-          <div className="relative mx-auto flex w-full max-w-6xl flex-col items-stretch gap-6 px-4 py-12 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:px-8 sm:py-20">
-            <Reveal variant="up" className="max-w-lg" delayMs={60}>
-              <h2 className="text-2xl font-semibold tracking-tight transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-has-[[data-cta]:hover]/cta:translate-x-1 sm:text-4xl">
-                Ready to review a snippet?
-              </h2>
-              <p className="mt-3 text-sm leading-relaxed text-teal-100/70 transition-colors duration-700 group-has-[[data-cta]:hover]/cta:text-teal-50/85 sm:text-base">
-                Open the workspace, paste code, and see findings in seconds.
-              </p>
-            </Reveal>
-            <Reveal variant="scale" delayMs={220} className="w-full sm:w-auto">
-              <Button
-                size="lg"
-                className="relative z-10 w-full bg-teal-400 text-teal-950 shadow-[0_0_0_0_rgba(45,212,191,0)] transition-[background-color,box-shadow,transform] duration-500 hover:bg-teal-300 hover:shadow-[0_0_36px_-4px_rgba(45,212,191,0.65)] sm:w-auto"
-                nativeButton={false}
-                render={<Link href="/review" data-cta="" />}
-              >
-                Start reviewing
-                <HugeiconsIcon
-                  icon={ArrowRight01Icon}
-                  strokeWidth={2}
-                  data-icon="inline-end"
-                />
-              </Button>
-            </Reveal>
-          </div>
-        </section>
+        <CtaBand />
       </main>
 
-      <footer className="border-t border-teal-900/10 bg-[#f4fbfa]">
-        <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-10">
+      <footer className="relative isolate overflow-hidden border-t border-teal-900/10">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_90%_80%_at_8%_0%,rgba(45,212,191,0.2),transparent_55%),radial-gradient(ellipse_70%_70%_at_92%_100%,rgba(8,145,178,0.12),transparent_50%),linear-gradient(180deg,#f7fffe_0%,#eef8f6_48%,#e8f4f2_100%)]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 opacity-[0.4] [background-image:linear-gradient(rgba(13,148,136,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(13,148,136,0.06)_1px,transparent_1px)] [background-size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_78%)]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-16 bottom-0 -z-10 h-48 w-48 rounded-full bg-teal-300/25 blur-3xl sm:h-64 sm:w-64"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -left-20 top-0 -z-10 h-40 w-40 rounded-full bg-cyan-200/30 blur-3xl"
+        />
+
+        <div className="relative mx-auto w-full max-w-6xl px-4 py-10 sm:px-8 sm:py-12">
           <Reveal variant="fade" delayMs={80}>
             <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
               <div>
@@ -432,48 +395,36 @@ export function LandingPage() {
                 <SocialLinks className="mt-4" />
               </div>
               <div className="grid grid-cols-2 gap-8 text-sm sm:flex sm:gap-12">
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   <p className="font-medium text-teal-950">Product</p>
-                  <ul className="space-y-1.5 text-teal-950/60">
+                  <ul className="space-y-2.5">
                     <li>
-                      <a
-                        href="#start-review"
-                        className="transition-colors hover:text-teal-800"
-                      >
+                      <a href="#start-review" className={FOOTER_LINK}>
                         Start reviewing
                       </a>
                     </li>
                     <li>
-                      <a
-                        href="#how-it-works"
-                        className="transition-colors hover:text-teal-800"
-                      >
+                      <a href="#how-it-works" className={FOOTER_LINK}>
                         How it works
                       </a>
                     </li>
                     <li>
-                      <a
-                        href="#focus"
-                        className="transition-colors hover:text-teal-800"
-                      >
+                      <a href="#focus" className={FOOTER_LINK}>
                         What we check
                       </a>
                     </li>
                   </ul>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   <p className="font-medium text-teal-950">Company</p>
-                  <ul className="space-y-1.5 text-teal-950/60">
+                  <ul className="space-y-2.5">
                     <li>
-                      <Link
-                        href="/about"
-                        className="transition-colors hover:text-teal-800"
-                      >
+                      <Link href="/about" className={FOOTER_LINK}>
                         About Oki-Ai
                       </Link>
                     </li>
-                    <li>Friendly reviews</li>
-                    <li>Built for clarity</li>
+                    <li className="text-teal-950/45">Friendly reviews</li>
+                    <li className="text-teal-950/45">Built for clarity</li>
                   </ul>
                 </div>
               </div>

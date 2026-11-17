@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Oki-Ai — AI Code Review",
+    default: "Oki Ai reviewer ",
     template: "%s — Oki-Ai",
   },
   description:
@@ -43,7 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         figtree.variable
       )}
     >
-      <body className="flex min-h-full flex-col overflow-x-hidden">
+      <body className="flex min-h-full flex-col overflow-x-clip">
         {children}
       </body>
     </html>
