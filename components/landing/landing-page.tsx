@@ -1,3 +1,4 @@
+import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -8,29 +9,30 @@ import {
   ArrowRight01Icon,
   Bug01Icon,
   CheckmarkCircle02Icon,
-  FlashIcon,
+  LanguageCircleIcon,
   SecurityCheckIcon,
   SourceCodeIcon,
 } from "@hugeicons/core-free-icons"
 import { SocialLinks } from "@/components/landing/social-links"
 import { OkiAiLogo } from "@/components/brand/oki-ai-logo"
+import { AutoHideHeader } from "@/components/layout/auto-hide-header"
 
 const STEPS = [
   {
     step: "01",
-    title: "Paste your code",
+    title: "Choose your language",
     detail:
-      "Drop in a snippet and pick the language. No setup, no repo sync required.",
-    icon: SourceCodeIcon,
-    cue: "snippet → language",
+      "Pick web, backend, or systems — so the review matches the kind of code you’re shipping.",
+    icon: LanguageCircleIcon,
+    cue: "web · backend · systems",
   },
   {
     step: "02",
-    title: "Run the review",
+    title: "Paste your code",
     detail:
-      "ok-ai scans for bugs, security risks, style issues, and AI authorship signals.",
-    icon: FlashIcon,
-    cue: "scan in seconds",
+      "Drop in a snippet in the editor. No setup, no repo sync required.",
+    icon: SourceCodeIcon,
+    cue: "paste → review",
   },
   {
     step: "03",
@@ -84,10 +86,29 @@ export function LandingPage() {
         aria-hidden
         className="pointer-events-none absolute -left-16 top-[70vh] -z-10 hidden size-[320px] rounded-full bg-cyan-500/15 blur-3xl animate-[pulse_9s_ease-in-out_infinite] sm:block"
       />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-0 top-[42vh] z-0 h-[min(90vh,720px)] w-[calc(min(90vh,720px)*130/308)] -translate-y-1/2 overflow-hidden select-none sm:h-[min(105vh,920px)] sm:w-[calc(min(105vh,920px)*130/308)]"
+      >
+        <Image
+          src="/Logos.png"
+          alt=""
+          width={520}
+          height={616}
+          priority
+          className="h-full w-auto max-w-none -translate-x-1/2 opacity-[0.13] sm:opacity-[0.16]"
+        />
+      </div>
 
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-8 sm:py-5">
+      <AutoHideHeader>
         <OkiAiLogo size="sm" className="sm:h-8" />
         <nav className="hidden min-w-0 items-center gap-5 md:flex">
+          <Link
+            href="/about"
+            className="text-sm font-medium text-teal-900/65 transition-colors hover:text-teal-900"
+          >
+            About
+          </Link>
           <a
             href="#how-it-works"
             className="text-sm font-medium text-teal-900/65 transition-colors hover:text-teal-900"
@@ -107,15 +128,15 @@ export function LandingPage() {
             Start reviewing
           </a>
         </nav>
-      </header>
+      </AutoHideHeader>
 
       <main className="flex min-w-0 flex-1 flex-col">
         {/* Hero */}
-        <section className="mx-auto flex w-full max-w-6xl flex-col justify-center px-4 pb-12 pt-4 sm:min-h-[calc(100vh-4.5rem)] sm:px-8 sm:pb-16 sm:pt-6">
-          <div className="grid min-w-0 items-center gap-8 sm:gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
+        <section className="relative flex w-full flex-col justify-center pb-12 pt-8 sm:min-h-[calc(100vh-1rem)] sm:pb-16 sm:pt-10">
+          <div className="relative z-10 mx-auto grid w-full min-w-0 max-w-6xl items-center gap-8 px-4 sm:gap-12 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
             <div className="max-w-xl animate-in fade-in slide-in-from-bottom-3 duration-700">
               <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-teal-700/70 sm:mb-4 sm:text-[11px] sm:tracking-[0.22em]">
-                Code quality, sharpened
+                Your calm code co-reviewer
               </p>
               <h1 className="sr-only">Oki-Ai</h1>
               <OkiAiLogo
@@ -125,8 +146,8 @@ export function LandingPage() {
                 className="max-w-full"
               />
               <p className="mt-4 max-w-md text-base leading-relaxed text-teal-950/70 sm:mt-5 sm:text-lg">
-                Instant AI code review for bugs, security, and style — with a
-                clear path to real analysis when you are ready.
+                Paste a snippet, pick your language, and get friendly findings
+                on bugs, security, and style, clear enough to act on right away. Let AI handle the rest.
               </p>
             </div>
 
@@ -229,14 +250,14 @@ export function LandingPage() {
             <Reveal variant="up" delayMs={40}>
               <div className="mx-auto max-w-2xl text-center">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-teal-700/70 sm:text-[11px]">
-                  From paste to clarity
+                  From language to clarity
                 </p>
                 <h2 className="mt-3 text-2xl font-semibold tracking-tight text-teal-950 sm:text-4xl">
                   How it works
                 </h2>
                 <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-teal-950/65 sm:text-base">
-                  Three steps from paste to actionable findings — built for
-                  speed while you prototype, ready for a real model later.
+                  Choose the language, paste a snippet, then get actionable
+                  findings built for speed while you prototype.
                 </p>
               </div>
             </Reveal>
@@ -441,11 +462,18 @@ export function LandingPage() {
                   </ul>
                 </div>
                 <div className="space-y-2">
-                  <p className="font-medium text-teal-950">Status</p>
+                  <p className="font-medium text-teal-950">Company</p>
                   <ul className="space-y-1.5 text-teal-950/60">
-                    <li>Demo UI live</li>
-                    <li>Mock analysis</li>
-                    <li>API coming next</li>
+                    <li>
+                      <Link
+                        href="/about"
+                        className="transition-colors hover:text-teal-800"
+                      >
+                        About Oki-Ai
+                      </Link>
+                    </li>
+                    <li>Friendly reviews</li>
+                    <li>Built for clarity</li>
                   </ul>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { OkiAiLogo } from "@/components/brand/oki-ai-logo"
+import { AutoHideHeader } from "@/components/layout/auto-hide-header"
 import { ReviewWorkspace } from "@/components/review/review-workspace"
 import { Button } from "@/components/ui/button"
 
@@ -15,7 +16,7 @@ export function ReviewShell() {
         className="pointer-events-none absolute inset-0 -z-10 hidden opacity-[0.35] sm:block [background-image:linear-gradient(rgba(15,80,90,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(15,80,90,0.05)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)]"
       />
 
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-8 sm:py-5">
+      <AutoHideHeader pushContent>
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <OkiAiLogo size="sm" className="sm:h-8" />
           <span className="hidden text-xs font-medium uppercase tracking-[0.16em] text-teal-700/60 sm:inline">
@@ -31,9 +32,9 @@ export function ReviewShell() {
           <span className="sm:hidden">Home</span>
           <span className="hidden sm:inline">Back to home</span>
         </Button>
-      </header>
+      </AutoHideHeader>
 
-      <main className="mx-auto flex w-full min-w-0 max-w-6xl flex-1 flex-col gap-5 px-4 pb-12 pt-1 sm:gap-8 sm:px-8 sm:pb-16 sm:pt-2">
+      <main className="mx-auto flex w-full min-w-0 max-w-6xl flex-1 flex-col gap-5 px-4 pb-12 pt-4 sm:gap-8 sm:px-8 sm:pb-16 sm:pt-5">
         <div className="max-w-2xl">
           <h1 className="text-2xl font-semibold tracking-tight text-teal-950 sm:text-4xl">
             AI code review

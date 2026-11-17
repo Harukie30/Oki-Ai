@@ -2,15 +2,15 @@ import { NextResponse } from "next/server"
 import { runGeminiReview } from "@/lib/gemini-review"
 import { runMockReview } from "@/lib/mock-review"
 import { runOpenAiReview } from "@/lib/openai-review"
-import type { CodeLanguage, ReviewRequest } from "@/lib/review-types"
+import {
+  CODE_LANGUAGES,
+  type CodeLanguage,
+  type ReviewRequest,
+} from "@/lib/review-types"
 
-const LANGUAGES = new Set<CodeLanguage>([
-  "typescript",
-  "javascript",
-  "python",
-  "go",
-  "rust",
-])
+const LANGUAGES = new Set<CodeLanguage>(
+  CODE_LANGUAGES.map((language) => language.value)
+)
 
 export async function POST(request: Request) {
   let body: unknown
