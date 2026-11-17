@@ -22,6 +22,9 @@ Rules:
 - line must be a real 1-based line number in the snippet when possible.
 - score 0-100 where higher is healthier code.
 - If the code is short or clean, fewer findings is fine.
+- revisedCode must be a complete, improved rewrite of the submitted snippet that applies the main fixes.
+- Keep revisedCode in the same language. Prefer runnable code over comments-only guidance.
+- For each finding, optionally include suggestedCode as a short local fix snippet.
 - Do not wrap the JSON in markdown fences.`,
     },
     {
@@ -83,5 +86,9 @@ export async function runOpenAiReview(
     throw new Error("OpenAI returned invalid JSON")
   }
 
-  return normalizeReviewResult(parsed, request.language)
+  return normalizeReviewResult(
+    parsed,
+    request.language,
+    request.code.trim().slice(0, MAX_CODE_CHARS)
+  )
 }

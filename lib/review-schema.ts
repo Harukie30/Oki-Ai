@@ -48,7 +48,8 @@ function normalizeCategory(value: unknown): FindingCategory {
 
 export function normalizeReviewResult(
   raw: unknown,
-  language: CodeLanguage
+  language: CodeLanguage,
+  originalCode = ""
 ): ReviewResult {
   const data =
     raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {}
@@ -57,6 +58,7 @@ export function normalizeReviewResult(
   const findings: ReviewFinding[] = findingsRaw.slice(0, 12).map((item, i) => {
     const row =
       item && typeof item === "object" ? (item as Record<string, unknown>) : {}
+    const suggestedCode = asString(row.suggestedCode)
     return {
       id: asString(row.id, `finding-${i + 1}`),
       severity: normalizeSeverity(row.severity),
@@ -65,8 +67,14 @@ export function normalizeReviewResult(
       title: asString(row.title, "Finding"),
       detail: asString(row.detail, "No detail provided."),
       suggestion: asString(row.suggestion, "No suggestion provided."),
+      ...(suggestedCode ? { suggestedCode } : {}),
     }
   })
+
+  const revisedCode =
+    asString(data.revisedCode) ||
+    asString(originalCode) ||
+    "// No revised snippet was returned.\n// Apply the findings on the left, then re-run review."
 
   return {
     score: clamp(asNumber(data.score, 70), 0, 100),
@@ -78,6 +86,7 @@ export function normalizeReviewResult(
         : "No major issues detected in this snippet."
     ),
     findings,
+    revisedCode,
     analyzedAt: new Date().toISOString(),
     language,
   }
@@ -87,6 +96,7 @@ export const REVIEW_JSON_SCHEMA_HINT = `{
   "score": number (0-100),
   "aiLikelihood": number (0-100),
   "summary": string,
+  "revisedCode": string (full improved version of the submitted snippet),
   "findings": [
     {
       "id": string,
@@ -95,7 +105,8 @@ export const REVIEW_JSON_SCHEMA_HINT = `{
       "line": number,
       "title": string,
       "detail": string,
-      "suggestion": string
+      "suggestion": string,
+      "suggestedCode": string (optional short fixed snippet for this finding)
     }
   ]
 }`

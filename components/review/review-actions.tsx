@@ -20,13 +20,11 @@ export function ReviewActions({
 }: ReviewActionsProps) {
   const hint = analyzing
     ? "Scanning for bugs, security risks, and style issues…"
-    : source === "gemini"
-      ? "Powered by Gemini — findings are generated from your snippet."
-      : source === "openai"
-        ? "Powered by OpenAI — findings are generated from your snippet."
-        : source === "mock"
-          ? "Mock mode — add GEMINI_API_KEY in .env.local for real AI (free tier)."
-          : "Reviews call /api/review. Add GEMINI_API_KEY for live AI analysis."
+    : source === "openai"
+      ? "Powered by OpenAI — findings and SuggestedCode are from your snippet."
+      : source === "mock"
+        ? "Mock mode — Gemini didn’t run this time. Check GEMINI_API_KEY in .env."
+        : "Powered by Gemini — findings and SuggestedCode come from your snippet."
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

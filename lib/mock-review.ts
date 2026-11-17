@@ -150,6 +150,8 @@ export async function runMockReview(
   const score = scoreFromFindings(findings)
   const aiLikelihood = aiLikelihoodFromCode(code)
 
+  const revisedCode = buildMockRevisedCode(code, request.language)
+
   return {
     score,
     aiLikelihood,
@@ -160,9 +162,41 @@ export async function runMockReview(
           ? "Several issues need attention before this is production-ready. Start with critical and warning items."
           : "High-risk patterns detected. Fix critical findings before shipping this code.",
     findings,
+    revisedCode,
     analyzedAt: new Date().toISOString(),
     language: request.language,
   }
+}
+
+function buildMockRevisedCode(code: string, language: CodeLanguage): string {
+  if (language === "typescript" || language === "javascript") {
+    return `async function fetchUser(id: string) {
+  const res = await fetch(\`/api/users/\${encodeURIComponent(id)}\`)
+  if (!res.ok) {
+    throw new Error(\`Failed to load user (\${res.status})\`)
+  }
+  return res.json()
+}
+
+export async function getDashboard(userId: string) {
+  const user = await fetchUser(userId)
+  const prefs =
+    typeof user.prefs === "string" ? JSON.parse(user.prefs) : user.prefs
+
+  if (process.env.NODE_ENV !== "production") {
+    console.debug("items", user.items?.length ?? 0)
+  }
+
+  return { ...user, prefs }
+}`
+  }
+
+  return `${code.trim()}
+
+# Suggested direction from Oki-Ai (mock):
+# - Validate inputs before use
+# - Prefer safe parsing over dynamic evaluation
+# - Check errors / status before reading results`
 }
 
 export const DEFAULT_SAMPLE_CODE = SAMPLE_SNIPPET

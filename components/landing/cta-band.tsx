@@ -15,8 +15,6 @@ export function CtaBand() {
   return (
     <section
       id="start-review"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
       className="relative isolate scroll-mt-16 overflow-hidden border-t border-teal-900/8 bg-teal-950 text-teal-50 sm:scroll-mt-20"
     >
       <div
@@ -88,19 +86,46 @@ export function CtaBand() {
           </p>
         </Reveal>
         <Reveal variant="scale" delayMs={220} className="w-full sm:w-auto">
-          <Button
-            size="lg"
-            className="relative z-10 w-full bg-teal-400 text-teal-950 shadow-[0_0_0_0_rgba(45,212,191,0)] transition-[background-color,box-shadow,transform] duration-500 hover:bg-teal-300 hover:shadow-[0_0_36px_-4px_rgba(45,212,191,0.65)] sm:w-auto"
-            nativeButton={false}
-            render={<Link href="/review" />}
+          <div
+            className="w-full sm:w-auto"
+            onPointerEnter={() => setHovered(true)}
+            onPointerLeave={() => setHovered(false)}
+            onFocusCapture={() => setHovered(true)}
+            onBlurCapture={(event) => {
+              if (
+                !event.currentTarget.contains(
+                  event.relatedTarget as Node | null
+                )
+              ) {
+                setHovered(false)
+              }
+            }}
           >
-            Start reviewing
-            <HugeiconsIcon
-              icon={ArrowRight01Icon}
-              strokeWidth={2}
-              data-icon="inline-end"
-            />
-          </Button>
+            <Button
+              size="lg"
+              className={cn(
+                "group/cta-btn relative z-10 w-full overflow-hidden bg-teal-400 text-teal-950 sm:w-auto",
+                "shadow-[0_0_0_0_rgba(45,212,191,0)] transition-[background-color,box-shadow,transform] duration-500",
+                "hover:bg-teal-300 hover:shadow-[0_0_36px_-4px_rgba(45,212,191,0.65)]",
+                hovered &&
+                  "bg-teal-300 shadow-[0_0_36px_-4px_rgba(45,212,191,0.65)]"
+              )}
+              nativeButton={false}
+              render={<Link href="/review" data-cta="" />}
+            >
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/35 to-transparent transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/cta-btn:translate-x-full"
+              />
+              <span className="relative">Start reviewing</span>
+              <HugeiconsIcon
+                icon={ArrowRight01Icon}
+                strokeWidth={2}
+                data-icon="inline-end"
+                className="relative transition-transform duration-300 group-hover/cta-btn:translate-x-0.5"
+              />
+            </Button>
+          </div>
         </Reveal>
       </div>
     </section>

@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react"
 import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { FindingCard } from "@/components/review/finding-card"
 import type { FindingSeverity, ReviewResult } from "@/lib/review-types"
@@ -21,30 +20,33 @@ const FILTERS: { value: "all" | FindingSeverity; label: string }[] = [
   { value: "suggestion", label: "Tips" },
 ]
 
-export function ReviewResults({ result }: ReviewResultsProps) {
-  const [filter, setFilter] = useState<"all" | FindingSeverity>("all")
+const cardClass =
+  "min-w-0 rounded-xl border border-border/80 bg-white/70 p-4 shadow-[0_20px_60px_-40px_rgba(15,70,80,0.45)] backdrop-blur-md sm:rounded-2xl sm:p-5"
 
-  const filtered = useMemo(() => {
-    if (filter === "all") return result.findings
-    return result.findings.filter((finding) => finding.severity === filter)
-  }, [filter, result.findings])
-
+export function ReviewSummaryCard({
+  result,
+  className,
+}: {
+  result: ReviewResult
+  className?: string
+}) {
   return (
     <section
       className={cn(
-        "min-w-0 rounded-xl border border-border/80 bg-white/70 p-4 shadow-[0_20px_60px_-40px_rgba(15,70,80,0.45)] backdrop-blur-md sm:rounded-2xl sm:p-5",
-        "animate-in fade-in slide-in-from-bottom-4 duration-700"
+        cardClass,
+        "animate-in fade-in slide-in-from-bottom-4 duration-700",
+        className
       )}
     >
-      <div className="grid gap-5 sm:grid-cols-[140px_1fr] sm:gap-6">
+      <div className="grid gap-5 sm:grid-cols-[120px_1fr] sm:gap-5">
         <div className="flex flex-col items-center justify-center gap-2">
           <div
-            className="relative grid size-[100px] place-items-center rounded-full sm:size-[116px]"
+            className="relative grid size-[96px] place-items-center rounded-full sm:size-[108px]"
             style={{
               background: `conic-gradient(#0d9488 ${result.score * 3.6}deg, #e5e7eb 0deg)`,
             }}
           >
-            <div className="grid size-[78px] place-items-center rounded-full bg-white text-center shadow-inner sm:size-[92px]">
+            <div className="grid size-[74px] place-items-center rounded-full bg-white text-center shadow-inner sm:size-[84px]">
               <div>
                 <p
                   className="text-2xl font-semibold tabular-nums tracking-tight text-foreground animate-in zoom-in-50 duration-700 sm:text-3xl"
@@ -60,10 +62,10 @@ export function ReviewResults({ result }: ReviewResultsProps) {
           </div>
         </div>
 
-        <div className="min-w-0 space-y-4">
+        <div className="min-w-0 space-y-3">
           <div>
             <h2 className="text-base font-semibold tracking-tight sm:text-lg">
-              Review results
+              Review summary
             </h2>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
               {result.summary}
@@ -86,23 +88,78 @@ export function ReviewResults({ result }: ReviewResultsProps) {
           </div>
         </div>
       </div>
+    </section>
+  )
+}
 
-      <Separator className="my-4 sm:my-5" />
+export function FindingsCard({
+  result,
+  className,
+}: {
+  result: ReviewResult
+  className?: string
+}) {
+  const [filter, setFilter] = useState<"all" | FindingSeverity>("all")
+
+  const filtered = useMemo(() => {
+    if (filter === "all") return result.findings
+    return result.findings.filter((finding) => finding.severity === filter)
+  }, [filter, result.findings])
+
+  const filterCounts = useMemo(() => {
+    const counts: Record<"all" | FindingSeverity, number> = {
+      all: result.findings.length,
+      critical: 0,
+      warning: 0,
+      info: 0,
+      suggestion: 0,
+    }
+    for (const finding of result.findings) {
+      counts[finding.severity] += 1
+    }
+    return counts
+  }, [result.findings])
+
+  return (
+    <section
+      className={cn(
+        cardClass,
+        "flex min-h-0 flex-col animate-in fade-in slide-in-from-bottom-4 duration-700 [animation-delay:80ms] fill-mode-both",
+        className
+      )}
+    >
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-semibold tracking-tight text-foreground sm:text-base">
+            Findings
+          </h3>
+          <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
+            Why the score looks this way — filter by severity.
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full border border-teal-900/10 bg-teal-500/8 px-2.5 py-1 text-[11px] font-medium tabular-nums text-teal-900/70">
+          {filtered.length}
+          {filter !== "all" ? ` / ${result.findings.length}` : ""}
+        </span>
+      </div>
 
       <Tabs
         value={filter}
         onValueChange={(value) => setFilter(value as "all" | FindingSeverity)}
       >
         <div className="mb-4 -mx-1 overflow-x-auto px-1">
-          <TabsList className="inline-flex w-max min-w-full flex-nowrap sm:min-w-0 sm:flex-wrap">
+          <TabsList className="inline-flex w-max min-w-full flex-nowrap gap-1 sm:min-w-0 sm:flex-wrap">
             {FILTERS.map((item) => (
               <TabsTrigger key={item.value} value={item.value}>
                 {item.label}
+                <span className="ml-1.5 tabular-nums opacity-60">
+                  {filterCounts[item.value]}
+                </span>
               </TabsTrigger>
             ))}
           </TabsList>
         </div>
-        <TabsContent value={filter}>
+        <TabsContent value={filter} className="min-h-0 flex-1">
           <ScrollArea className="h-[280px] pr-2 sm:h-[340px] sm:pr-3">
             <div className="flex flex-col gap-3 pb-2">
               {filtered.length === 0 ? (
@@ -123,5 +180,15 @@ export function ReviewResults({ result }: ReviewResultsProps) {
         </TabsContent>
       </Tabs>
     </section>
+  )
+}
+
+/** @deprecated Prefer composing ReviewSummaryCard + FindingsCard for layout control */
+export function ReviewResults({ result }: ReviewResultsProps) {
+  return (
+    <div className="flex min-w-0 flex-col gap-4">
+      <ReviewSummaryCard result={result} />
+      <FindingsCard result={result} />
+    </div>
   )
 }

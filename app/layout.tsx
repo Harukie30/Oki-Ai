@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     template: "%s — Oki-Ai",
   },
   description:
-    "Instant AI code review for bugs, security, and style. Paste code, get findings.",
+    "Built to make code reviews feel kinder. Paste code, get friendly findings on bugs, security, and style.",
 }
 
 export const viewport: Viewport = {

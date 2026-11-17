@@ -12,6 +12,7 @@ const REVIEW_RESPONSE_SCHEMA = {
     score: { type: "number" },
     aiLikelihood: { type: "number" },
     summary: { type: "string" },
+    revisedCode: { type: "string" },
     findings: {
       type: "array",
       items: {
@@ -30,6 +31,7 @@ const REVIEW_RESPONSE_SCHEMA = {
           title: { type: "string" },
           detail: { type: "string" },
           suggestion: { type: "string" },
+          suggestedCode: { type: "string" },
         },
         required: [
           "severity",
@@ -42,7 +44,7 @@ const REVIEW_RESPONSE_SCHEMA = {
       },
     },
   },
-  required: ["score", "aiLikelihood", "summary", "findings"],
+  required: ["score", "aiLikelihood", "summary", "revisedCode", "findings"],
 } as const
 
 export async function runGeminiReview(
@@ -66,6 +68,9 @@ Rules:
 - line must be a real 1-based line number in the snippet when possible.
 - score 0-100 where higher is healthier code.
 - If the code is short or clean, fewer findings is fine.
+- revisedCode must be a complete, improved rewrite of the submitted snippet that applies the main fixes.
+- Keep revisedCode in the same language. Prefer runnable code over comments-only guidance.
+- For each finding, optionally include suggestedCode as a short local fix snippet.
 
 Language: ${request.language}
 
@@ -121,5 +126,5 @@ ${code}
     throw new Error("Gemini returned invalid JSON")
   }
 
-  return normalizeReviewResult(parsed, request.language)
+  return normalizeReviewResult(parsed, request.language, code)
 }

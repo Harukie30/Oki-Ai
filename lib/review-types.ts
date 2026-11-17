@@ -32,6 +32,8 @@ export interface ReviewFinding {
   title: string
   detail: string
   suggestion: string
+  /** Short code snippet showing the local fix, when available. */
+  suggestedCode?: string
 }
 
 export interface ReviewResult {
@@ -39,6 +41,8 @@ export interface ReviewResult {
   aiLikelihood: number
   summary: string
   findings: ReviewFinding[]
+  /** Full revised snippet applying the main suggested fixes. */
+  revisedCode: string
   analyzedAt: string
   language: CodeLanguage
 }

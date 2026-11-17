@@ -5,6 +5,7 @@ import { Reveal } from "@/components/landing/reveal"
 import { cn } from "@/lib/utils"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
+  ArrowRight01Icon,
   Bug01Icon,
   CheckmarkCircle02Icon,
   LanguageCircleIcon,
@@ -96,12 +97,12 @@ export function LandingPage() {
         className="pointer-events-none absolute left-0 top-[42vh] z-0 h-[min(90vh,720px)] w-[calc(min(90vh,720px)*130/308)] -translate-y-1/2 overflow-hidden select-none sm:h-[min(105vh,920px)] sm:w-[calc(min(105vh,920px)*130/308)]"
       >
         <Image
-          src="/Logos.png"
+          src="/brand/oki-ai-logo.png"
           alt=""
           width={520}
           height={616}
           priority
-          className="h-full w-auto max-w-none -translate-x-1/2 opacity-[0.13] sm:opacity-[0.16]"
+          className="h-full w-auto max-w-none -translate-x-1/2 opacity-[0.18] sm:opacity-[0.22]"
         />
       </div>
 
@@ -129,7 +130,7 @@ export function LandingPage() {
           <div className="relative z-10 mx-auto grid w-full min-w-0 max-w-6xl items-center gap-8 px-4 sm:gap-12 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
             <div className="max-w-xl animate-in fade-in slide-in-from-bottom-3 duration-700">
               <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-teal-700/70 sm:mb-4 sm:text-[11px] sm:tracking-[0.22em]">
-                Your calm code co-reviewer
+                Built to make code reviews feel kinder
               </p>
               <h1 className="sr-only">Oki-Ai</h1>
               <OkiAiLogo
@@ -142,61 +143,161 @@ export function LandingPage() {
                 Paste a snippet, pick your language, and get friendly findings
                 on bugs, security, and style, clear enough to act on right away. Let AI handle the rest.
               </p>
+              <Link
+                href="/about"
+                className={cn(
+                  "group/more relative mt-6 inline-flex items-center gap-2 overflow-hidden rounded-xl",
+                  "border border-teal-900/10 bg-gradient-to-r from-white/80 to-teal-50/70 px-4 py-2.5",
+                  "text-sm font-medium text-teal-900/80 backdrop-blur-sm",
+                  "shadow-[0_8px_24px_-18px_rgba(8,60,70,0.35)]",
+                  "transition-[transform,background-color,border-color,color,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                  "hover:-translate-y-0.5 hover:border-teal-500/35 hover:from-teal-50 hover:to-teal-100/80 hover:text-teal-950",
+                  "hover:shadow-[0_16px_36px_-18px_rgba(13,148,136,0.5)]",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#eef8f6]"
+                )}
+              >
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-teal-300/25 to-transparent transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/more:translate-x-full"
+                />
+                <span className="relative">See more</span>
+                <span className="relative inline-flex size-6 items-center justify-center rounded-lg bg-teal-600/10 text-teal-700 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/more:translate-x-0.5 group-hover/more:bg-teal-500/15">
+                  <HugeiconsIcon
+                    icon={ArrowRight01Icon}
+                    strokeWidth={2}
+                    className="size-3.5"
+                  />
+                </span>
+              </Link>
             </div>
 
-            <div className="relative min-w-0 animate-in fade-in zoom-in-95 duration-1000">
-              <div className="absolute -inset-2 rounded-[1.5rem] bg-gradient-to-br from-teal-400/30 via-cyan-300/10 to-transparent blur-2xl sm:-inset-4 sm:rounded-[2rem]" />
-              <div className="relative overflow-hidden rounded-2xl border border-teal-950/10 bg-[#0c1214] p-4 shadow-[0_40px_100px_-40px_rgba(8,60,70,0.7)] ring-1 ring-teal-300/20 sm:rounded-[1.75rem] sm:p-6">
-                <div className="mb-3 flex items-center gap-2 sm:mb-4">
-                  <span className="size-2.5 rounded-full bg-[#ff5f57]" />
-                  <span className="size-2.5 rounded-full bg-[#febc2e]" />
-                  <span className="size-2.5 rounded-full bg-[#28c840]" />
-                  <span className="ml-2 truncate font-mono text-xs text-white/40">
-                    review.ts
+            <div className="group/ide relative min-w-0 animate-in fade-in zoom-in-95 duration-1000">
+              <div
+                aria-hidden
+                className="absolute -inset-2 rounded-[1.5rem] bg-gradient-to-br from-teal-400/35 via-cyan-300/15 to-transparent blur-2xl transition-opacity duration-700 group-hover/ide:opacity-100 sm:-inset-4 sm:rounded-[2rem] opacity-80"
+              />
+              <div
+                className={cn(
+                  "relative overflow-hidden rounded-2xl border border-white/10 bg-[#0c1214] shadow-[0_40px_100px_-40px_rgba(8,60,70,0.7)]",
+                  "ring-1 ring-teal-400/20 [color-scheme:dark] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                  "group-hover/ide:-translate-y-1 group-hover/ide:shadow-[0_48px_110px_-36px_rgba(8,60,70,0.85)] sm:rounded-[1.75rem]"
+                )}
+              >
+                <div className="flex items-center justify-between gap-3 border-b border-white/8 px-3 py-2.5 sm:px-4 sm:py-3">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="size-2.5 shrink-0 rounded-full bg-[#ff5f57]" />
+                    <span className="size-2.5 shrink-0 rounded-full bg-[#febc2e]" />
+                    <span className="size-2.5 shrink-0 rounded-full bg-[#28c840]" />
+                    <span className="ml-1 truncate font-mono text-[11px] text-white/45 sm:ml-2 sm:text-xs">
+                      review.ts
+                    </span>
+                  </div>
+                  <span className="shrink-0 rounded-md border border-teal-400/20 bg-teal-400/10 px-2 py-0.5 font-mono text-[10px] font-medium tracking-wide text-teal-200/80">
+                    TypeScript
                   </span>
                 </div>
-                <pre className="max-w-full overflow-x-auto font-mono text-[11px] leading-5 text-teal-100/85 sm:text-[13px] sm:leading-6">
-                  <code>{`async function review(code: string) {
-  const findings = await scan(code)
-  return {
-    score: grade(findings),
-    aiLikelihood: estimate(code),
-    findings,
-  }
-}`}</code>
-                </pre>
-                <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl border border-white/10 bg-white/5 px-2 py-3 sm:mt-5 sm:flex sm:items-center sm:justify-between sm:gap-3 sm:px-4">
-                  <div className="min-w-0 text-center sm:text-left">
-                    <p className="truncate text-[9px] font-medium uppercase tracking-[0.12em] text-teal-200/70 sm:text-xs sm:tracking-[0.14em]">
-                      Score
-                    </p>
-                    <p className="mt-1 text-xl font-semibold tabular-nums text-white sm:text-2xl">
-                      86
-                    </p>
+
+                <div className="relative px-3 py-3 sm:px-4 sm:py-4">
+                  <div className="flex gap-3 overflow-x-auto font-mono text-[11px] leading-6 sm:text-[13px] sm:leading-7">
+                    <div
+                      aria-hidden
+                      className="select-none text-right text-white/20"
+                    >
+                      {["1", "2", "3", "4", "5", "6", "7", "8"].map((n) => (
+                        <div key={n}>{n}</div>
+                      ))}
+                    </div>
+                    <pre className="min-w-0 flex-1 text-teal-50/90">
+                      <code>
+                        <span className="text-fuchsia-300/90">async</span>
+                        <span className="text-sky-300"> function</span>
+                        <span className="text-amber-200"> review</span>
+                        <span className="text-white/50">(</span>
+                        <span className="text-orange-200/90">code</span>
+                        <span className="text-white/50">: </span>
+                        <span className="text-teal-300">string</span>
+                        <span className="text-white/50">) {"{"}</span>
+                        {"\n"}
+                        <span className="text-white/50">{"  "}</span>
+                        <span className="text-fuchsia-300/90">const</span>
+                        <span className="text-orange-200/90"> findings</span>
+                        <span className="text-white/50"> = </span>
+                        <span className="text-fuchsia-300/90">await</span>
+                        <span className="text-amber-200"> scan</span>
+                        <span className="text-white/50">(</span>
+                        <span className="text-orange-200/90">code</span>
+                        <span className="text-white/50">)</span>
+                        {"\n"}
+                        <span className="text-white/50">{"  "}</span>
+                        <span className="text-fuchsia-300/90">return</span>
+                        <span className="text-white/50"> {"{"}</span>
+                        {"\n"}
+                        <span className="text-white/50">{"    "}</span>
+                        <span className="text-sky-200/90">score</span>
+                        <span className="text-white/50">: </span>
+                        <span className="text-amber-200">grade</span>
+                        <span className="text-white/50">(</span>
+                        <span className="text-orange-200/90">findings</span>
+                        <span className="text-white/50">),</span>
+                        {"\n"}
+                        <span className="text-white/50">{"    "}</span>
+                        <span className="text-sky-200/90">aiLikelihood</span>
+                        <span className="text-white/50">: </span>
+                        <span className="text-amber-200">estimate</span>
+                        <span className="text-white/50">(</span>
+                        <span className="text-orange-200/90">code</span>
+                        <span className="text-white/50">),</span>
+                        {"\n"}
+                        <span className="text-white/50">{"    "}</span>
+                        <span className="text-sky-200/90">findings</span>
+                        <span className="text-white/50">,</span>
+                        {"\n"}
+                        <span className="text-white/50">{"  }"}</span>
+                        {"\n"}
+                        <span className="text-white/50">{"}"}</span>
+                      </code>
+                    </pre>
                   </div>
-                  <div className="hidden h-10 w-px bg-white/10 sm:block" />
-                  <div className="min-w-0 text-center sm:text-left">
-                    <p className="truncate text-[9px] font-medium uppercase tracking-[0.12em] text-teal-200/70 sm:text-xs sm:tracking-[0.14em]">
-                      Findings
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-[#0c1214] to-transparent"
+                  />
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-0 top-2 h-px animate-[scan_2.8s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-teal-300/70 to-transparent"
+                  />
+                </div>
+
+                <div className="border-t border-white/8 bg-white/[0.03] px-3 py-3 sm:px-4 sm:py-3.5">
+                  <div className="mb-3 flex items-center justify-between gap-2">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-teal-200/55">
+                      Review ready
                     </p>
-                    <p className="mt-1 text-xl font-semibold tabular-nums text-white sm:text-2xl">
-                      4
-                    </p>
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-400/20 bg-teal-400/10 px-2 py-0.5 text-[10px] font-medium text-teal-200/85">
+                      <span className="size-1.5 rounded-full bg-teal-300 motion-safe:animate-pulse" />
+                      Live preview
+                    </span>
                   </div>
-                  <div className="hidden h-10 w-px bg-white/10 sm:block" />
-                  <div className="min-w-0 text-center sm:text-left">
-                    <p className="truncate text-[9px] font-medium uppercase tracking-[0.12em] text-teal-200/70 sm:text-xs sm:tracking-[0.14em]">
-                      AI signal
-                    </p>
-                    <p className="mt-1 text-xl font-semibold tabular-nums text-white sm:text-2xl">
-                      41%
-                    </p>
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                    {[
+                      { label: "Score", value: "86" },
+                      { label: "Findings", value: "4" },
+                      { label: "AI signal", value: "41%" },
+                    ].map((stat) => (
+                      <div
+                        key={stat.label}
+                        className="min-w-0 rounded-xl border border-white/8 bg-white/[0.04] px-2.5 py-2.5 transition-colors duration-300 group-hover/ide:border-teal-400/20 group-hover/ide:bg-teal-400/[0.06] sm:px-3"
+                      >
+                        <p className="truncate text-[9px] font-medium uppercase tracking-[0.12em] text-teal-200/60 sm:text-[10px]">
+                          {stat.label}
+                        </p>
+                        <p className="mt-1 text-lg font-semibold tabular-nums text-white sm:text-xl">
+                          {stat.value}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute inset-x-4 top-14 h-px animate-[scan_2.8s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-teal-300/80 to-transparent sm:inset-x-6 sm:top-16"
-                />
               </div>
             </div>
           </div>
@@ -424,7 +525,7 @@ export function LandingPage() {
                       </Link>
                     </li>
                     <li className="text-teal-950/45">Friendly reviews</li>
-                    <li className="text-teal-950/45">Built for clarity</li>
+                    <li className="text-teal-950/45">Kinder reviews</li>
                   </ul>
                 </div>
               </div>
@@ -433,8 +534,8 @@ export function LandingPage() {
             <Separator className="my-6 bg-teal-900/10 sm:my-8" />
 
             <div className="flex flex-col gap-2 text-xs text-teal-950/50 sm:flex-row sm:items-center sm:justify-between">
-              <p>© 2026 Oki-Ai. Built for clearer code reviews.</p>
-              <p className="font-mono tracking-wide">UI-first · teal edition</p>
+              <p>© 2026 Oki-Ai. Built to make code reviews feel kinder.</p>
+              <p className="font-mono tracking-wide">Oki-Ai · kinder reviews</p>
             </div>
           </Reveal>
         </div>

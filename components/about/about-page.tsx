@@ -56,14 +56,15 @@ export function AboutPage() {
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute right-0 top-[30vh] z-0 h-[min(70vh,560px)] w-[calc(min(70vh,560px)*130/308)] translate-x-1/2 -translate-y-1/2 overflow-hidden select-none"
+        className="pointer-events-none absolute left-0 top-[42vh] z-0 h-[min(90vh,720px)] w-[calc(min(90vh,720px)*130/308)] -translate-y-1/2 overflow-hidden select-none sm:h-[min(105vh,920px)] sm:w-[calc(min(105vh,920px)*130/308)]"
       >
         <Image
-          src="/Logos.png"
+          src="/brand/oki-ai-logo.png"
           alt=""
           width={520}
           height={616}
-          className="h-full w-auto max-w-none translate-x-1/2 opacity-[0.1]"
+          priority
+          className="h-full w-auto max-w-none -translate-x-1/2 opacity-[0.18] sm:opacity-[0.22]"
         />
       </div>
 
@@ -95,7 +96,7 @@ export function AboutPage() {
         <section className="mx-auto flex w-full max-w-6xl flex-col px-4 pb-10 pt-8 sm:px-8 sm:pb-14 sm:pt-10">
           <Reveal variant="up" delayMs={40}>
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-teal-700/70 sm:text-[11px]">
-              About Oki-Ai
+              Built to make code reviews feel kinder
             </p>
             <h1 className="mt-3 max-w-2xl text-3xl font-semibold tracking-tight text-teal-950 sm:text-5xl">
               A calmer way to understand your code

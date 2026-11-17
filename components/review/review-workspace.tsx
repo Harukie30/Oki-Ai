@@ -1,15 +1,57 @@
 "use client"
 
-import { useState } from "react"
+import Image from "next/image"
+import { useState, type ReactNode } from "react"
 import { CodeInput } from "@/components/review/code-input"
 import { LanguagePicker } from "@/components/review/language-picker"
 import { ReviewActions } from "@/components/review/review-actions"
 import { ReviewErrorModal } from "@/components/review/review-error-modal"
-import { ReviewResults } from "@/components/review/review-results"
+import {
+  FindingsCard,
+  ReviewSummaryCard,
+} from "@/components/review/review-results"
+import { SuggestedFixIde } from "@/components/review/suggested-fix-ide"
 import { runReview, type ReviewResponse } from "@/lib/run-review"
 import type { CodeLanguage, ReviewStatus } from "@/lib/review-types"
+import { cn } from "@/lib/utils"
 
 type WorkspaceStep = "language" | "paste"
+
+function SectionLabel({
+  step,
+  title,
+  detail,
+}: {
+  step: string
+  title: string
+  detail: string
+}) {
+  return (
+    <div className="mb-3 flex items-end justify-between gap-3">
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-teal-700/55">
+          {step}
+        </p>
+        <h2 className="mt-1 text-sm font-semibold tracking-tight text-teal-950 sm:text-base">
+          {title}
+        </h2>
+      </div>
+      <p className="hidden max-w-xs text-right text-xs text-teal-950/45 sm:block">
+        {detail}
+      </p>
+    </div>
+  )
+}
+
+function Panel({
+  children,
+  className,
+}: {
+  children: ReactNode
+  className?: string
+}) {
+  return <div className={cn("min-w-0", className)}>{children}</div>
+}
 
 export function ReviewWorkspace() {
   const [step, setStep] = useState<WorkspaceStep>("language")
@@ -21,6 +63,7 @@ export function ReviewWorkspace() {
 
   const analyzing = status === "analyzing"
   const readyToReview = Boolean(language && code.trim())
+  const reviewReady = Boolean(result && status === "ready")
 
   async function handleReview() {
     if (!language || !code.trim()) return
@@ -52,7 +95,7 @@ export function ReviewWorkspace() {
   }
 
   return (
-    <div className="grid min-w-0 gap-5 sm:gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.95fr)] lg:items-start">
+    <div className="flex min-w-0 flex-col gap-8 sm:gap-10">
       <ReviewErrorModal
         open={Boolean(error)}
         message={error || ""}
@@ -63,56 +106,114 @@ export function ReviewWorkspace() {
         }}
       />
 
-      <div className="min-w-0 space-y-4">
+      {/* 1. Write → 2. Suggested fix (side by side when ready) */}
+      <section className="min-w-0">
+        <SectionLabel
+          step={reviewReady ? "Step 1 · Compare" : "Step 1 · Write"}
+          title={
+            reviewReady ? "Your code and the suggested fix" : "Paste your code"
+          }
+          detail={
+            reviewReady
+              ? "Read left to right: original first, then the improved version."
+              : "Choose a language, paste a snippet, then run the review."
+          }
+        />
+
         {step === "language" || !language ? (
           <LanguagePicker onSelect={handleLanguageSelect} />
         ) : (
-          <>
-            <CodeInput
-              code={code}
-              language={language}
-              disabled={analyzing}
-              onCodeChange={setCode}
-              onLanguageChange={(next) => {
-                setLanguage(next)
-                setResult(null)
-                setStatus("idle")
-              }}
-              onChangeLanguageStep={handleChangeLanguageStep}
-            />
+          <div className="space-y-4">
+            <div
+              className={cn(
+                "grid min-w-0 items-center gap-4",
+                reviewReady &&
+                  "xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]"
+              )}
+            >
+              <Panel>
+                <CodeInput
+                  code={code}
+                  language={language}
+                  disabled={analyzing}
+                  onCodeChange={setCode}
+                  onLanguageChange={(next) => {
+                    setLanguage(next)
+                    setResult(null)
+                    setStatus("idle")
+                  }}
+                  onChangeLanguageStep={handleChangeLanguageStep}
+                />
+              </Panel>
+
+              {reviewReady && result?.revisedCode ? (
+                <>
+                  <div
+                    aria-hidden
+                    className="flex items-center justify-center py-1 xl:px-1 xl:py-0"
+                  >
+                    <Image
+                      src="/brand/oki-ai-logo.png"
+                      alt=""
+                      width={120}
+                      height={142}
+                      className="h-14 w-auto opacity-70 sm:h-16 xl:h-20"
+                    />
+                  </div>
+                  <Panel>
+                    <SuggestedFixIde
+                      code={result.revisedCode}
+                      language={result.language}
+                    />
+                  </Panel>
+                </>
+              ) : null}
+            </div>
+
             <ReviewActions
               analyzing={analyzing}
               disabled={!readyToReview}
               source={result?.source}
               onReview={handleReview}
             />
-            {result?.notice && status === "ready" ? (
+
+            {result?.notice && reviewReady ? (
               <p className="rounded-xl border border-amber-200/80 bg-amber-50 px-3 py-2 text-sm text-amber-900/80">
                 {result.notice}
               </p>
             ) : null}
-          </>
+          </div>
         )}
-      </div>
+      </section>
 
-      <div className="min-h-[200px] min-w-0 sm:min-h-[280px]">
-        {result && status === "ready" ? (
-          <ReviewResults result={result} />
+      {/* 2. Analysis: summary then findings */}
+      <section className="min-w-0">
+        <SectionLabel
+          step="Step 2 · Understand"
+          title="Score and findings"
+          detail="Start with the summary, then skim findings by severity."
+        />
+
+        {reviewReady && result ? (
+          <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.15fr)] lg:items-start">
+            <ReviewSummaryCard result={result} />
+            <FindingsCard result={result} />
+          </div>
         ) : (
-          <div className="flex h-full min-h-[200px] flex-col items-start justify-center rounded-xl border border-dashed border-teal-700/20 bg-white/50 px-4 py-8 backdrop-blur-sm sm:min-h-[280px] sm:rounded-2xl sm:px-6 sm:py-10 lg:min-h-[420px]">
+          <div className="flex min-h-[200px] flex-col items-start justify-center rounded-xl border border-dashed border-teal-700/20 bg-white/50 px-4 py-8 backdrop-blur-sm sm:min-h-[260px] sm:rounded-2xl sm:px-6 sm:py-10">
             <p className="text-sm font-medium text-teal-900/80">
               {analyzing
                 ? "Running review…"
                 : step === "language"
                   ? "Choose a language to begin"
-                  : "Results appear here"}
+                  : "Results will show up here"}
             </p>
-            <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+            <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
               {analyzing
-                ? "Scoring quality, flagging risks, and estimating AI authorship signals."
+                ? "Scoring quality, flagging risks, and drafting a suggested fix you can copy."
                 : step === "language"
                   ? "Start with the language type, then paste your snippet in the editor."
-                  : "Paste code above, hit Review, and see score, findings, and suggestions."}
+                  : "Hit Review to get a score, findings, and a suggested-fix editor side by side with your code."}
             </p>
             {analyzing ? (
               <div className="mt-6 h-1 w-40 overflow-hidden rounded-full bg-teal-100">
@@ -121,7 +222,7 @@ export function ReviewWorkspace() {
             ) : null}
           </div>
         )}
-      </div>
+      </section>
     </div>
   )
 }

@@ -74,7 +74,7 @@ export function ReviewShell() {
 
       <main
         className={cn(
-          "mx-auto flex min-h-0 w-full min-w-0 max-w-6xl flex-1 flex-col gap-5 px-4 pb-12 pt-[calc(1rem+var(--oki-nav-shift,0px))] transition-[padding-top] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:gap-8 sm:px-8 sm:pb-16 sm:pt-[calc(1.25rem+var(--oki-nav-shift,0px))]",
+          "flex min-h-0 w-full min-w-0 flex-1 flex-col gap-5 px-4 pb-12 pt-[calc(1rem+var(--oki-nav-shift,0px))] transition-[padding-top] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:gap-8 sm:px-6 sm:pb-16 sm:pt-[calc(1.25rem+var(--oki-nav-shift,0px))] lg:px-8",
           lockPageScroll
             ? "overflow-hidden overscroll-none"
             : "overflow-y-auto overscroll-contain"
@@ -85,8 +85,8 @@ export function ReviewShell() {
             AI code review
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-teal-950/65 sm:text-base">
-            Paste a snippet, run a review, and get severity-ranked findings with
-            fix suggestions.
+            Write code, compare the suggested fix, then read the score and
+            findings — top to bottom, left to right.
           </p>
         </div>
         <ReviewWorkspace />
