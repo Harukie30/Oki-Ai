@@ -4,28 +4,28 @@ import { useState } from "react"
 import { CodeInput } from "@/components/review/code-input"
 import { ReviewActions } from "@/components/review/review-actions"
 import { ReviewResults } from "@/components/review/review-results"
-import { DEFAULT_SAMPLE_CODE, runMockReview } from "@/lib/mock-review"
-import type {
-  CodeLanguage,
-  ReviewResult,
-  ReviewStatus,
-} from "@/lib/review-types"
+import { DEFAULT_SAMPLE_CODE } from "@/lib/mock-review"
+import { runReview, type ReviewResponse } from "@/lib/run-review"
+import type { CodeLanguage, ReviewStatus } from "@/lib/review-types"
 
 export function ReviewWorkspace() {
   const [code, setCode] = useState(DEFAULT_SAMPLE_CODE)
   const [language, setLanguage] = useState<CodeLanguage>("typescript")
   const [status, setStatus] = useState<ReviewStatus>("idle")
-  const [result, setResult] = useState<ReviewResult | null>(null)
+  const [result, setResult] = useState<ReviewResponse | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const analyzing = status === "analyzing"
 
   async function handleReview() {
     setStatus("analyzing")
+    setError(null)
     try {
-      const next = await runMockReview({ code, language })
+      const next = await runReview({ code, language })
       setResult(next)
       setStatus("ready")
-    } catch {
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Review failed")
       setStatus(result ? "ready" : "idle")
     }
   }
@@ -43,8 +43,19 @@ export function ReviewWorkspace() {
         <ReviewActions
           analyzing={analyzing}
           disabled={!code.trim()}
+          source={result?.source}
           onReview={handleReview}
         />
+        {error ? (
+          <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+            {error}
+          </p>
+        ) : null}
+        {result?.notice && status === "ready" ? (
+          <p className="rounded-xl border border-amber-200/80 bg-amber-50 px-3 py-2 text-sm text-amber-900/80">
+            {result.notice}
+          </p>
+        ) : null}
       </div>
 
       <div className="min-h-[200px] min-w-0 sm:min-h-[280px]">

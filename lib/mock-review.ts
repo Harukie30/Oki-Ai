@@ -138,8 +138,7 @@ function aiLikelihoodFromCode(code: string): number {
 }
 
 /**
- * Mock review runner. Swap this for a real `/api/review` fetch later
- * without changing the review UI components.
+ * Local mock review used when OPENAI_API_KEY is not configured.
  */
 export async function runMockReview(
   request: ReviewRequest
