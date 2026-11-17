@@ -5,7 +5,11 @@ import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { FindingCard } from "@/components/review/finding-card"
-import type { FindingSeverity, ReviewResult } from "@/lib/review-types"
+import type {
+  FindingSeverity,
+  ReviewFinding,
+  ReviewResult,
+} from "@/lib/review-types"
 import { cn } from "@/lib/utils"
 
 interface ReviewResultsProps {
@@ -95,9 +99,13 @@ export function ReviewSummaryCard({
 export function FindingsCard({
   result,
   className,
+  activeFindingId = null,
+  onSelectFinding,
 }: {
   result: ReviewResult
   className?: string
+  activeFindingId?: string | null
+  onSelectFinding?: (finding: ReviewFinding) => void
 }) {
   const [filter, setFilter] = useState<"all" | FindingSeverity>("all")
 
@@ -134,13 +142,38 @@ export function FindingsCard({
             Findings
           </h3>
           <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
-            Why the score looks this way — filter by severity.
+            Click a finding to jump to that line in your code.
           </p>
         </div>
         <span className="shrink-0 rounded-full border border-teal-900/10 bg-teal-500/8 px-2.5 py-1 text-[11px] font-medium tabular-nums text-teal-900/70">
           {filtered.length}
           {filter !== "all" ? ` / ${result.findings.length}` : ""}
         </span>
+      </div>
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        {(
+          [
+            ["critical", "Critical", "bg-rose-500/12 text-rose-800 border-rose-500/20"],
+            ["warning", "Warning", "bg-amber-500/12 text-amber-900 border-amber-500/20"],
+            ["info", "Info", "bg-sky-500/12 text-sky-900 border-sky-500/20"],
+            ["suggestion", "Tips", "bg-teal-500/12 text-teal-900 border-teal-500/20"],
+          ] as const
+        ).map(([key, label, styles]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setFilter(key)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-opacity",
+              styles,
+              filter !== "all" && filter !== key && "opacity-45"
+            )}
+          >
+            {label}
+            <span className="tabular-nums opacity-70">{filterCounts[key]}</span>
+          </button>
+        ))}
       </div>
 
       <Tabs
@@ -172,6 +205,8 @@ export function FindingsCard({
                     key={finding.id}
                     finding={finding}
                     index={index}
+                    active={activeFindingId === finding.id}
+                    onSelect={onSelectFinding}
                   />
                 ))
               )}

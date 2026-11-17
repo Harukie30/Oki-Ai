@@ -8,11 +8,19 @@ import { Alert02Icon, Cancel01Icon } from "@hugeicons/core-free-icons"
 function getErrorCopy(message: string): { title: string; detail: string } {
   const lower = message.toLowerCase()
 
-  if (lower.includes("high demand") || lower.includes("503") || lower.includes("unavailable")) {
+  if (
+    lower.includes("timed out") ||
+    lower.includes("504") ||
+    lower.includes("high demand") ||
+    lower.includes("503") ||
+    lower.includes("429") ||
+    lower.includes("busy") ||
+    lower.includes("unavailable")
+  ) {
     return {
-      title: "AI is busy right now",
+      title: "AI is taking too long",
       detail:
-        "Gemini is seeing high demand. This is usually temporary — wait a moment and try the review again.",
+        "Gemini didn’t finish in time — often high demand or a large snippet. Wait a moment, try a shorter piece of code, then retry.",
     }
   }
 

@@ -79,6 +79,10 @@ export async function POST(request: Request) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Review failed unexpectedly"
-    return NextResponse.json({ error: message }, { status: 502 })
+    const timedOut = message.toLowerCase().includes("timed out")
+    return NextResponse.json(
+      { error: message },
+      { status: timedOut ? 504 : 502 }
+    )
   }
 }

@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import { useState, type ReactNode } from "react"
+import { CodeDiffPanel } from "@/components/review/code-diff-panel"
 import { CodeInput } from "@/components/review/code-input"
 import { LanguagePicker } from "@/components/review/language-picker"
 import { ReviewActions } from "@/components/review/review-actions"
@@ -12,10 +13,15 @@ import {
 } from "@/components/review/review-results"
 import { SuggestedFixIde } from "@/components/review/suggested-fix-ide"
 import { runReview, type ReviewResponse } from "@/lib/run-review"
-import type { CodeLanguage, ReviewStatus } from "@/lib/review-types"
+import type {
+  CodeLanguage,
+  ReviewFinding,
+  ReviewStatus,
+} from "@/lib/review-types"
 import { cn } from "@/lib/utils"
 
 type WorkspaceStep = "language" | "paste"
+type CompareMode = "editors" | "diff"
 
 function SectionLabel({
   step,
@@ -60,6 +66,10 @@ export function ReviewWorkspace() {
   const [status, setStatus] = useState<ReviewStatus>("idle")
   const [result, setResult] = useState<ReviewResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [compareMode, setCompareMode] = useState<CompareMode>("editors")
+  const [activeFindingId, setActiveFindingId] = useState<string | null>(null)
+  const [highlightLine, setHighlightLine] = useState<number | null>(null)
+  const [baselineCode, setBaselineCode] = useState("")
 
   const analyzing = status === "analyzing"
   const readyToReview = Boolean(language && code.trim())
@@ -70,10 +80,14 @@ export function ReviewWorkspace() {
 
     setStatus("analyzing")
     setError(null)
+    setActiveFindingId(null)
+    setHighlightLine(null)
     try {
       const next = await runReview({ code, language })
       setResult(next)
+      setBaselineCode(code)
       setStatus("ready")
+      setCompareMode("editors")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Review failed")
       setStatus(result ? "ready" : "idle")
@@ -86,12 +100,30 @@ export function ReviewWorkspace() {
     setStatus("idle")
     setResult(null)
     setError(null)
+    setActiveFindingId(null)
+    setHighlightLine(null)
   }
 
   function handleChangeLanguageStep() {
     setStep("language")
     setStatus("idle")
     setError(null)
+  }
+
+  function handleApplySuggestedCode() {
+    if (!result?.revisedCode) return
+    setCode(result.revisedCode)
+    setActiveFindingId(null)
+    setHighlightLine(null)
+  }
+
+  function handleSelectFinding(finding: ReviewFinding) {
+    setActiveFindingId(finding.id)
+    setHighlightLine(finding.line)
+    setCompareMode("editors")
+    document
+      .getElementById("review-compare")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
   return (
@@ -106,8 +138,7 @@ export function ReviewWorkspace() {
         }}
       />
 
-      {/* 1. Write → 2. Suggested fix (side by side when ready) */}
-      <section className="min-w-0">
+      <section id="review-compare" className="min-w-0 scroll-mt-24">
         <SectionLabel
           step={reviewReady ? "Step 1 · Compare" : "Step 1 · Write"}
           title={
@@ -115,7 +146,7 @@ export function ReviewWorkspace() {
           }
           detail={
             reviewReady
-              ? "Read left to right: original first, then the improved version."
+              ? "Apply SuggestedCode, or open Diff to see what changed."
               : "Choose a language, paste a snippet, then run the review."
           }
         />
@@ -124,51 +155,84 @@ export function ReviewWorkspace() {
           <LanguagePicker onSelect={handleLanguageSelect} />
         ) : (
           <div className="space-y-4">
-            <div
-              className={cn(
-                "grid min-w-0 items-center gap-4",
-                reviewReady &&
-                  "xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]"
-              )}
-            >
-              <Panel>
-                <CodeInput
-                  code={code}
-                  language={language}
-                  disabled={analyzing}
-                  onCodeChange={setCode}
-                  onLanguageChange={(next) => {
-                    setLanguage(next)
-                    setResult(null)
-                    setStatus("idle")
-                  }}
-                  onChangeLanguageStep={handleChangeLanguageStep}
-                />
-              </Panel>
-
-              {reviewReady && result?.revisedCode ? (
-                <>
-                  <div
-                    aria-hidden
-                    className="flex items-center justify-center py-1 xl:px-1 xl:py-0"
+            {reviewReady ? (
+              <div className="inline-flex rounded-xl border border-teal-900/10 bg-white/60 p-1 backdrop-blur-sm">
+                {(
+                  [
+                    ["editors", "Editors"],
+                    ["diff", "Diff"],
+                  ] as const
+                ).map(([mode, label]) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setCompareMode(mode)}
+                    className={cn(
+                      "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+                      compareMode === mode
+                        ? "bg-teal-700 text-white"
+                        : "text-teal-900/60 hover:bg-teal-900/5 hover:text-teal-950"
+                    )}
                   >
-                    <Image
-                      src="/brand/oki-ai-logo.png"
-                      alt=""
-                      width={120}
-                      height={142}
-                      className="h-14 w-auto opacity-70 sm:h-16 xl:h-20"
-                    />
-                  </div>
-                  <Panel>
-                    <SuggestedFixIde
-                      code={result.revisedCode}
-                      language={result.language}
-                    />
-                  </Panel>
-                </>
-              ) : null}
-            </div>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            {reviewReady && compareMode === "diff" && result?.revisedCode ? (
+              <CodeDiffPanel before={baselineCode} after={result.revisedCode} />
+            ) : (
+              <div
+                className={cn(
+                  "grid min-w-0 items-center gap-4",
+                  reviewReady &&
+                    "xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]"
+                )}
+              >
+                <Panel>
+                  <CodeInput
+                    code={code}
+                    language={language}
+                    disabled={analyzing}
+                    highlightLine={highlightLine}
+                    onCodeChange={setCode}
+                    onLanguageChange={(next) => {
+                      setLanguage(next)
+                      setResult(null)
+                      setStatus("idle")
+                      setActiveFindingId(null)
+                      setHighlightLine(null)
+                    }}
+                    onChangeLanguageStep={handleChangeLanguageStep}
+                  />
+                </Panel>
+
+                {reviewReady && result?.revisedCode ? (
+                  <>
+                    <div
+                      aria-hidden
+                      className="flex items-center justify-center py-1 xl:px-1 xl:py-0"
+                    >
+                      <Image
+                        src="/brand/oki-ai-logo.png"
+                        alt=""
+                        width={120}
+                        height={142}
+                        className="h-14 w-auto opacity-70 sm:h-16 xl:h-20"
+                      />
+                    </div>
+                    <Panel>
+                      <SuggestedFixIde
+                        code={result.revisedCode}
+                        language={result.language}
+                        onApply={handleApplySuggestedCode}
+                      />
+                    </Panel>
+                  </>
+                ) : null}
+              </div>
+            )}
 
             <ReviewActions
               analyzing={analyzing}
@@ -186,18 +250,21 @@ export function ReviewWorkspace() {
         )}
       </section>
 
-      {/* 2. Analysis: summary then findings */}
       <section className="min-w-0">
         <SectionLabel
           step="Step 2 · Understand"
           title="Score and findings"
-          detail="Start with the summary, then skim findings by severity."
+          detail="Start with the summary, then click a finding to jump to that line."
         />
 
         {reviewReady && result ? (
           <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.15fr)] lg:items-start">
             <ReviewSummaryCard result={result} />
-            <FindingsCard result={result} />
+            <FindingsCard
+              result={result}
+              activeFindingId={activeFindingId}
+              onSelectFinding={handleSelectFinding}
+            />
           </div>
         ) : (
           <div className="flex min-h-[200px] flex-col items-start justify-center rounded-xl border border-dashed border-teal-700/20 bg-white/50 px-4 py-8 backdrop-blur-sm sm:min-h-[260px] sm:rounded-2xl sm:px-6 sm:py-10">
@@ -210,10 +277,10 @@ export function ReviewWorkspace() {
             </p>
             <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
               {analyzing
-                ? "Scoring quality, flagging risks, and drafting a suggested fix you can copy."
+                ? "Scoring quality, flagging risks, and drafting a suggested fix you can copy or apply."
                 : step === "language"
                   ? "Start with the language type, then paste your snippet in the editor."
-                  : "Hit Review to get a score, findings, and a suggested-fix editor side by side with your code."}
+                  : "Hit Review to compare code, open a Diff, and jump from findings to lines."}
             </p>
             {analyzing ? (
               <div className="mt-6 h-1 w-40 overflow-hidden rounded-full bg-teal-100">

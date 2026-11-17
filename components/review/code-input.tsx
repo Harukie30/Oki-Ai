@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useRef } from "react"
 import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
@@ -19,6 +20,7 @@ interface CodeInputProps {
   code: string
   language: CodeLanguage
   disabled?: boolean
+  highlightLine?: number | null
   onCodeChange: (code: string) => void
   onLanguageChange: (language: CodeLanguage) => void
   onChangeLanguageStep?: () => void
@@ -32,18 +34,40 @@ export function CodeInput({
   code,
   language,
   disabled,
+  highlightLine = null,
   onCodeChange,
   onLanguageChange,
   onChangeLanguageStep,
 }: CodeInputProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const languageLabel =
     CODE_LANGUAGES.find((lang) => lang.value === language)?.label ?? "Language"
+
+  useEffect(() => {
+    if (!highlightLine || highlightLine < 1) return
+    const el = textareaRef.current
+    if (!el) return
+
+    const styles = window.getComputedStyle(el)
+    const lineHeight = Number.parseFloat(styles.lineHeight) || 20
+    const paddingTop = Number.parseFloat(styles.paddingTop) || 0
+    const target = paddingTop + (highlightLine - 1) * lineHeight
+    el.scrollTop = Math.max(0, target - el.clientHeight / 3)
+
+    const start =
+      code.split("\n").slice(0, highlightLine - 1).join("\n").length +
+      (highlightLine > 1 ? 1 : 0)
+    const lineText = code.split("\n")[highlightLine - 1] ?? ""
+    el.focus()
+    el.setSelectionRange(start, start + lineText.length)
+  }, [highlightLine, code])
 
   return (
     <div
       className={cn(
         "relative min-w-0 overflow-hidden rounded-xl border border-white/10 bg-[#0c1214] shadow-[0_24px_80px_-32px_rgba(8,40,48,0.65)] sm:rounded-2xl",
-        "ring-1 ring-teal-400/15 [color-scheme:dark]"
+        "ring-1 ring-teal-400/15 [color-scheme:dark]",
+        highlightLine ? "ring-amber-300/35" : null
       )}
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/8 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
@@ -77,9 +101,7 @@ export function CodeInput({
               size="sm"
               className="max-w-full shrink-0 border-white/10 bg-white/5 text-white/85 hover:bg-white/10"
             >
-              <SelectValue>
-                {() => languageLabel}
-              </SelectValue>
+              <SelectValue>{() => languageLabel}</SelectValue>
             </SelectTrigger>
             <SelectContent alignItemWithTrigger={false} align="end">
               {CODE_LANGUAGES.map((lang) => (
@@ -94,12 +116,15 @@ export function CodeInput({
 
       <div className="border-b border-white/5 px-3 py-2 sm:px-4">
         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-teal-300/60">
-          Step 2 of 2 · Paste {languageLabel}
+          {highlightLine
+            ? `Focus · line ${highlightLine}`
+            : `Your code · ${languageLabel}`}
         </p>
       </div>
 
       <div className="relative">
         <Textarea
+          ref={textareaRef}
           value={code}
           onChange={(event) => onCodeChange(event.target.value)}
           disabled={disabled}
