@@ -2,12 +2,14 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { DonateModal } from "@/components/about/donate-modal"
 import { SupportModal } from "@/components/about/support-modal"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { FavouriteIcon } from "@hugeicons/core-free-icons"
+import { FavouriteIcon, Money01Icon } from "@hugeicons/core-free-icons"
 
 export function AboutSupport() {
-  const [open, setOpen] = useState(false)
+  const [supportOpen, setSupportOpen] = useState(false)
+  const [donateOpen, setDonateOpen] = useState(false)
 
   return (
     <>
@@ -19,24 +21,41 @@ export function AboutSupport() {
           Want to help or support Oki-Ai?
         </h2>
         <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-teal-950/65 sm:text-base">
-          If the kinder-review vibe resonates, there are a few gentle ways to
-          help the project grow — share it, star it, or say hi.
+          Share the project, leave a star, say hi — or send an optional tip via
+          QR, GCash, or Maya Bank.
         </p>
-        <Button
-          size="lg"
-          className="mt-7 bg-teal-600 text-white hover:bg-teal-500"
-          onClick={() => setOpen(true)}
-        >
-          <HugeiconsIcon
-            icon={FavouriteIcon}
-            strokeWidth={1.75}
-            data-icon="inline-start"
-          />
-          Ways to support
-        </Button>
+
+        <div className="mt-7 inline-flex w-full max-w-md flex-col gap-3 sm:max-w-none sm:w-auto sm:flex-row sm:items-center">
+          <Button
+            size="lg"
+            className="w-full bg-teal-600 text-white hover:bg-teal-500 sm:w-auto"
+            onClick={() => setSupportOpen(true)}
+          >
+            <HugeiconsIcon
+              icon={FavouriteIcon}
+              strokeWidth={1.75}
+              data-icon="inline-start"
+            />
+            Ways to support
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            className="w-full border-teal-900/15 bg-white/80 text-teal-900 hover:border-teal-500/35 hover:bg-teal-50 sm:w-auto"
+            onClick={() => setDonateOpen(true)}
+          >
+            <HugeiconsIcon
+              icon={Money01Icon}
+              strokeWidth={1.75}
+              data-icon="inline-start"
+            />
+            Donate
+          </Button>
+        </div>
       </div>
 
-      <SupportModal open={open} onClose={() => setOpen(false)} />
+      <SupportModal open={supportOpen} onClose={() => setSupportOpen(false)} />
+      <DonateModal open={donateOpen} onClose={() => setDonateOpen(false)} />
     </>
   )
 }

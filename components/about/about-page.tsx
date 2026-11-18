@@ -1,6 +1,6 @@
-import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { AboutHeroLogo } from "@/components/about/about-hero-logo"
 import { AboutSupport } from "@/components/about/about-support"
 import { Reveal } from "@/components/landing/reveal"
 import { OkiAiLogo } from "@/components/brand/oki-ai-logo"
@@ -55,19 +55,6 @@ export function AboutPage() {
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_120%_80%_at_12%_-8%,rgba(45,212,191,0.28),transparent_55%),radial-gradient(ellipse_80%_60%_at_90%_10%,rgba(8,145,178,0.14),transparent_50%),linear-gradient(165deg,#f7fffe_0%,#eef8f6_42%,#f5faf9_100%)]"
       />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-0 top-[42vh] z-0 h-[min(90vh,720px)] w-[calc(min(90vh,720px)*130/308)] -translate-y-1/2 overflow-hidden select-none sm:h-[min(105vh,920px)] sm:w-[calc(min(105vh,920px)*130/308)]"
-      >
-        <Image
-          src="/brand/oki-ai-logo.png"
-          alt=""
-          width={520}
-          height={616}
-          priority
-          className="h-full w-auto max-w-none -translate-x-1/2 opacity-[0.18] sm:opacity-[0.22]"
-        />
-      </div>
 
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-8 sm:py-5">
         <OkiAiLogo size="sm" className="sm:h-8" />
@@ -94,19 +81,50 @@ export function AboutPage() {
       </header>
 
       <main className="relative z-10 flex min-w-0 flex-1 flex-col">
-        <section className="mx-auto flex w-full max-w-6xl flex-col px-4 pb-10 pt-8 sm:px-8 sm:pb-14 sm:pt-10">
-          <Reveal variant="up" delayMs={40}>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-teal-700/70 sm:text-[11px]">
-              Built to make code reviews feel kinder
-            </p>
-            <h1 className="mt-3 max-w-2xl text-3xl font-semibold tracking-tight text-teal-950 sm:text-5xl">
-              A calmer way to understand your code
-            </h1>
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-teal-950/65 sm:text-lg">
-              Oki-Ai is built to feel helpful, not intimidating, a soft place to
-              paste a snippet and leave with clearer next steps.
-            </p>
-          </Reveal>
+        <section className="relative isolate overflow-hidden">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_80%_at_0%_20%,rgba(45,212,191,0.22),transparent_55%),radial-gradient(ellipse_60%_70%_at_100%_40%,rgba(8,145,178,0.16),transparent_50%),radial-gradient(ellipse_50%_40%_at_55%_100%,rgba(20,184,166,0.12),transparent_60%)]"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:linear-gradient(rgba(13,148,136,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(13,148,136,0.07)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_78%)]"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -left-16 top-8 size-[280px] rounded-full bg-teal-300/20 blur-3xl sm:size-[360px]"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-20 bottom-0 size-[300px] rounded-full bg-cyan-400/15 blur-3xl sm:size-[420px]"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute right-[8%] top-[18%] size-[220px] rounded-full border border-dashed border-teal-600/15 sm:size-[300px]"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute right-[14%] top-[28%] size-[140px] rounded-full border border-teal-500/10 sm:size-[190px]"
+          />
+
+          <div className="relative mx-auto grid w-full max-w-6xl items-center gap-8 px-4 pb-12 pt-8 sm:gap-10 sm:px-8 sm:pb-16 sm:pt-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+            <Reveal variant="up" delayMs={40}>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-teal-700/70 sm:text-[11px]">
+                Built to make code reviews feel kinder
+              </p>
+              <h1 className="mt-3 max-w-2xl text-3xl font-semibold tracking-tight text-teal-950 sm:text-5xl">
+                A calmer way to understand your code
+              </h1>
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-teal-950/65 sm:text-lg">
+                Oki-Ai is built to feel helpful, not intimidating, a soft place to
+                paste a snippet and leave with clearer next steps.
+              </p>
+            </Reveal>
+
+            <Reveal variant="fade" delayMs={160}>
+              <AboutHeroLogo />
+            </Reveal>
+          </div>
         </section>
 
         <section className="mx-auto w-full max-w-6xl px-4 pb-14 sm:px-8 sm:pb-20">

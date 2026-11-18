@@ -1,14 +1,12 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { createPortal } from "react-dom"
-import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { AboutModalShell } from "@/components/about/about-modal-shell"
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react"
 import {
-  Cancel01Icon,
-  Coffee01Icon,
+  ArrowRight01Icon,
   Copy01Icon,
   DiscordIcon,
   FavouriteIcon,
@@ -23,29 +21,17 @@ type SupportAction = {
   title: string
   detail: string
   cta: string
+  cue: string
   href?: string
   copyText?: string
   icon: IconSvgElement
-  featured?: boolean
 }
-
-/** Swap DONATE_HREF for your Ko-fi / Buy Me a Coffee / PayPal / GCash link. */
-const DONATE_HREF = "https://ko-fi.com"
 
 const SUPPORT_ACTIONS: SupportAction[] = [
   {
-    id: "donate",
-    title: "Buy a coffee",
-    detail:
-      "A small tip helps cover hosting and AI costs so Oki-Ai can stay free and calm.",
-    cta: "Donate",
-    href: DONATE_HREF,
-    icon: Coffee01Icon,
-    featured: true,
-  },
-  {
     id: "share",
     title: "Share Oki-Ai",
+    cue: "Spread the calm",
     detail: "Send the site to a friend who could use a kinder code review.",
     cta: "Copy link",
     copyText: "origin",
@@ -54,6 +40,7 @@ const SUPPORT_ACTIONS: SupportAction[] = [
   {
     id: "github",
     title: "Star the repo",
+    cue: "Open source",
     detail: "A star helps others find Oki-Ai and keeps the project visible.",
     cta: "Open GitHub",
     href: "https://github.com",
@@ -62,6 +49,7 @@ const SUPPORT_ACTIONS: SupportAction[] = [
   {
     id: "discord",
     title: "Join the chat",
+    cue: "Community",
     detail: "Share feedback, report bugs, or hang with other builders.",
     cta: "Open Discord",
     href: "https://discord.com",
@@ -70,8 +58,8 @@ const SUPPORT_ACTIONS: SupportAction[] = [
   {
     id: "kindness",
     title: "Keep it kind",
-    detail:
-      "Use Oki-Ai, tell us what feels helpful, and help shape gentler reviews.",
+    cue: "Use it",
+    detail: "Run a review, notice what helps, and help shape gentler feedback.",
     cta: "Start a review",
     href: "/review",
     icon: FavouriteIcon,
@@ -84,29 +72,7 @@ interface SupportModalProps {
 }
 
 export function SupportModal({ open, onClose }: SupportModalProps) {
-  const [mounted, setMounted] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  useEffect(() => {
-    if (!open) return
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose()
-    }
-
-    window.addEventListener("keydown", onKeyDown)
-    const previous = document.body.style.overflow
-    document.body.style.overflow = "hidden"
-
-    return () => {
-      window.removeEventListener("keydown", onKeyDown)
-      document.body.style.overflow = previous
-    }
-  }, [open, onClose])
 
   useEffect(() => {
     if (!copiedId) return
@@ -128,191 +94,151 @@ export function SupportModal({ open, onClose }: SupportModalProps) {
     }
   }
 
-  if (!mounted || !open) return null
-
-  return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-      <button
-        type="button"
-        aria-label="Close dialog"
-        className="absolute inset-0 bg-teal-950/35 backdrop-blur-[2px]"
-        onClick={onClose}
-      />
-
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="support-modal-title"
-        aria-describedby="support-modal-detail"
-        className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-teal-900/10 bg-[#f7fffe] shadow-[0_30px_80px_-28px_rgba(8,60,70,0.55)] animate-in fade-in zoom-in-95 duration-200"
-      >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-[radial-gradient(ellipse_at_top,rgba(45,212,191,0.3),transparent_70%)]"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-8 top-10 h-40 w-40 rounded-full bg-cyan-200/35 blur-3xl"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.28] [background-image:linear-gradient(rgba(13,148,136,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(13,148,136,0.07)_1px,transparent_1px)] [background-size:28px_28px] [mask-image:radial-gradient(ellipse_at_top,black_35%,transparent_75%)]"
-        />
-
-        <div
-          aria-hidden
-          className="pointer-events-none absolute right-6 top-7 z-[5] size-16 sm:right-8 sm:top-8 sm:size-[4.5rem]"
-        >
-          <Image
-            src="/brand/oki-ai-logo.png"
-            alt=""
-            width={96}
-            height={114}
-            className="h-full w-auto object-contain opacity-90 drop-shadow-[0_12px_28px_rgba(8,60,70,0.22)]"
+  return (
+    <AboutModalShell
+      open={open}
+      onClose={onClose}
+      labelledBy="support-modal-title"
+      describedBy="support-modal-detail"
+      maxWidthClassName="max-w-xl"
+    >
+      <div className="px-6 pb-6 pt-8 pr-24 sm:px-8 sm:pb-7 sm:pr-28 sm:pt-9">
+        <div className="flex size-12 items-center justify-center rounded-2xl bg-teal-600/10 text-teal-800 ring-1 ring-teal-700/10">
+          <HugeiconsIcon
+            icon={FavouriteIcon}
+            strokeWidth={1.75}
+            className="size-6"
           />
         </div>
 
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute left-3 top-3 z-10 inline-flex size-8 items-center justify-center rounded-full bg-[#f7fffe]/80 text-teal-900/50 backdrop-blur-sm transition-colors hover:bg-teal-900/5 hover:text-teal-900"
-          aria-label="Close"
+        <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.22em] text-teal-700/60">
+          Built to make code reviews feel kinder
+        </p>
+        <h2
+          id="support-modal-title"
+          className="mt-2 max-w-[18ch] text-2xl font-semibold tracking-tight text-teal-950 sm:text-[1.7rem]"
         >
-          <HugeiconsIcon icon={Cancel01Icon} strokeWidth={1.75} className="size-4" />
-        </button>
+          Help Oki-Ai grow gently
+        </h2>
+        <p
+          id="support-modal-detail"
+          className="mt-2 max-w-md text-sm leading-relaxed text-teal-950/65"
+        >
+          Small acts of support keep the project calm and useful — share it,
+          star it, or say hello. No pressure.
+        </p>
 
-        <div className="relative px-6 pb-6 pt-7 pr-24 sm:px-7 sm:pr-28">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-teal-600/10 text-teal-800 ring-1 ring-teal-700/10">
-            <HugeiconsIcon
-              icon={FavouriteIcon}
-              strokeWidth={1.75}
-              className="size-6"
-            />
-          </div>
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+          {SUPPORT_ACTIONS.map((action) => {
+            const copied = copiedId === action.id
+            const isCopy = Boolean(action.copyText)
+            const isInternal = action.href?.startsWith("/")
 
-          <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-teal-700/60">
-            Support Oki-Ai
-          </p>
-          <h2
-            id="support-modal-title"
-            className="mt-2 text-xl font-semibold tracking-tight text-teal-950 sm:text-2xl"
-          >
-            Want to help keep reviews kinder?
-          </h2>
-          <p
-            id="support-modal-detail"
-            className="mt-2 text-sm leading-relaxed text-teal-950/65"
-          >
-            Oki-Ai stays free and calm with community support. Pick a small way
-            to help — no pressure, just kindness.
-          </p>
-
-          <ul className="mt-5 space-y-2.5">
-            {SUPPORT_ACTIONS.map((action) => {
-              const copied = copiedId === action.id
-              const isCopy = Boolean(action.copyText)
-              const isInternal = action.href?.startsWith("/")
-
-              return (
-                <li
-                  key={action.id}
+            const body = (
+              <>
+                <div className="flex items-start justify-between gap-3">
+                  <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-teal-900/[0.04] text-teal-800 transition-colors group-hover:bg-teal-500/12 group-hover:text-teal-700">
+                    <HugeiconsIcon
+                      icon={
+                        isCopy && copied ? Tick02Icon : action.icon
+                      }
+                      strokeWidth={1.75}
+                      className="size-4"
+                    />
+                  </span>
+                  <span className="rounded-full border border-teal-900/8 bg-white/70 px-2 py-0.5 text-[10px] font-medium tracking-wide text-teal-800/55">
+                    {action.cue}
+                  </span>
+                </div>
+                <div className="mt-3 min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-teal-950">
+                    {action.title}
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-teal-950/60">
+                    {action.detail}
+                  </p>
+                </div>
+                <p
                   className={cn(
-                    "flex flex-col gap-3 rounded-2xl border p-3.5 sm:flex-row sm:items-center sm:justify-between",
-                    action.featured
-                      ? "border-teal-500/25 bg-teal-50/90 ring-1 ring-teal-500/10"
-                      : "border-teal-900/8 bg-white/70"
+                    "mt-3 inline-flex items-center gap-1 text-[11px] font-semibold",
+                    isCopy && copied
+                      ? "text-teal-700"
+                      : "text-teal-700/70 group-hover:text-teal-800"
                   )}
                 >
-                  <div className="flex min-w-0 items-start gap-3">
-                    <span
-                      className={cn(
-                        "mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-xl text-teal-800",
-                        action.featured
-                          ? "bg-teal-500/15 text-teal-700"
-                          : "bg-teal-900/[0.04]"
-                      )}
-                    >
-                      <HugeiconsIcon
-                        icon={action.icon}
-                        strokeWidth={1.75}
-                        className="size-4"
-                      />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-teal-950">
-                        {action.title}
-                        {action.featured ? (
-                          <span className="ml-2 align-middle text-[10px] font-semibold uppercase tracking-[0.14em] text-teal-700/55">
-                            Optional
-                          </span>
-                        ) : null}
-                      </p>
-                      <p className="mt-0.5 text-xs leading-relaxed text-teal-950/60">
-                        {action.detail}
-                      </p>
-                    </div>
-                  </div>
+                  {isCopy && copied ? "Copied" : action.cta}
+                  {!isCopy || !copied ? (
+                    <HugeiconsIcon
+                      icon={isCopy ? Copy01Icon : ArrowRight01Icon}
+                      strokeWidth={2}
+                      className="size-3.5"
+                    />
+                  ) : null}
+                </p>
+              </>
+            )
 
-                  {isCopy ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className={cn(
-                        "w-full shrink-0 border-teal-900/10 sm:w-auto",
-                        copied && "border-teal-500/30 bg-teal-50 text-teal-800"
-                      )}
-                      onClick={() => void handleCopy(action)}
-                    >
-                      <HugeiconsIcon
-                        icon={copied ? Tick02Icon : Copy01Icon}
-                        strokeWidth={1.75}
-                        data-icon="inline-start"
-                      />
-                      {copied ? "Copied" : action.cta}
-                    </Button>
-                  ) : (
-                    <Button
-                      size="sm"
-                      className={cn(
-                        "w-full shrink-0 sm:w-auto",
-                        action.featured
-                          ? "bg-teal-700 text-white hover:bg-teal-600"
-                          : "bg-teal-600 text-white hover:bg-teal-500"
-                      )}
-                      nativeButton={false}
-                      render={
-                        isInternal ? (
-                          <Link href={action.href!} onClick={onClose} />
-                        ) : (
-                          <a
-                            href={action.href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={onClose}
-                          />
-                        )
-                      }
-                    >
-                      {action.cta}
-                    </Button>
-                  )}
+            const cardClass = cn(
+              "group flex h-full min-h-[9.5rem] flex-col rounded-2xl border border-teal-900/8 bg-white/75 p-4 text-left shadow-[0_12px_30px_-24px_rgba(8,60,70,0.45)] backdrop-blur-sm",
+              "transition-[transform,border-color,background-color,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+              "hover:-translate-y-0.5 hover:border-teal-500/30 hover:bg-white hover:shadow-[0_18px_40px_-24px_rgba(13,148,136,0.45)]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+            )
+
+            if (isCopy) {
+              return (
+                <li key={action.id}>
+                  <button
+                    type="button"
+                    onClick={() => void handleCopy(action)}
+                    className={cn(cardClass, "w-full")}
+                  >
+                    {body}
+                  </button>
                 </li>
               )
-            })}
-          </ul>
+            }
 
-          <div className="mt-5 flex justify-end">
-            <Button
-              variant="outline"
-              className="w-full border-teal-900/10 text-teal-900/75 hover:bg-teal-50 sm:w-auto"
-              onClick={onClose}
-            >
-              Maybe later
-            </Button>
-          </div>
+            if (isInternal) {
+              return (
+                <li key={action.id}>
+                  <Link
+                    href={action.href!}
+                    onClick={onClose}
+                    className={cn(cardClass, "w-full")}
+                  >
+                    {body}
+                  </Link>
+                </li>
+              )
+            }
+
+            return (
+              <li key={action.id}>
+                <a
+                  href={action.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={onClose}
+                  className={cn(cardClass, "w-full")}
+                >
+                  {body}
+                </a>
+              </li>
+            )
+          })}
+        </ul>
+
+        <div className="mt-6 flex justify-end">
+          <Button
+            variant="outline"
+            className="w-full border-teal-900/10 bg-white/60 text-teal-900/75 hover:bg-teal-50 sm:w-auto"
+            onClick={onClose}
+          >
+            Maybe later
+          </Button>
         </div>
       </div>
-    </div>,
-    document.body
+    </AboutModalShell>
   )
 }

@@ -195,6 +195,26 @@ body::-webkit-scrollbar-corner {
   }
 }
 
+@keyframes oki-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.oki-float {
+  animation: oki-float 5.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oki-float {
+    animation: none;
+  }
+}
+
 /* Dark scrollbar for the review IDE panels (avoids Windows white track) */
 .ide-scroll {
   color-scheme: dark;
