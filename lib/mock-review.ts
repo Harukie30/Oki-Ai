@@ -44,6 +44,11 @@ function pickFindings(code: string, language: CodeLanguage): ReviewFinding[] {
         "Use of eval or equivalent dynamic execution can run untrusted input and open an injection path.",
       suggestion:
         "Remove eval. Parse structured data with JSON.parse or a schema validator instead.",
+      suggestedCode:
+        language === "typescript" || language === "javascript"
+          ? `const prefs =
+  typeof user.prefs === "string" ? JSON.parse(user.prefs) : user.prefs`
+          : "prefs = json.loads(user['prefs']) if isinstance(user.get('prefs'), str) else user.get('prefs')",
     },
     {
       severity: "critical",
@@ -53,6 +58,10 @@ function pickFindings(code: string, language: CodeLanguage): ReviewFinding[] {
         "A promise-returning call is used without await, so errors and results are easy to mishandle.",
       suggestion:
         "Mark the function async and await the call, or explicitly handle the promise chain.",
+      suggestedCode:
+        language === "typescript" || language === "javascript"
+          ? "const user = await fetchUser(userId)"
+          : "user = await fetch_user(user_id)",
     },
     {
       severity: "warning",
@@ -62,6 +71,10 @@ function pickFindings(code: string, language: CodeLanguage): ReviewFinding[] {
         "URL or path segments are built with string concatenation from external values.",
       suggestion:
         "Encode parameters and validate IDs before building the request URL.",
+      suggestedCode:
+        language === "typescript" || language === "javascript"
+          ? "const res = await fetch(`/api/users/${encodeURIComponent(id)}`)"
+          : 'url = f"/api/users/{quote(id, safe=\'\')}"',
     },
     {
       severity: "warning",
@@ -71,6 +84,12 @@ function pickFindings(code: string, language: CodeLanguage): ReviewFinding[] {
         "Repeated side effects inside a tight loop can flood logs and hurt hot paths.",
       suggestion:
         "Batch logs or gate verbose output behind a debug flag.",
+      suggestedCode:
+        language === "typescript" || language === "javascript"
+          ? `if (process.env.NODE_ENV !== "production") {
+  console.debug("items", user.items?.length ?? 0)
+}`
+          : 'if __debug__:\n    print("items", len(user.get("items", [])))',
     },
     {
       severity: "info",
@@ -82,6 +101,10 @@ function pickFindings(code: string, language: CodeLanguage): ReviewFinding[] {
         language === "typescript"
           ? "Add parameter and return types to exported functions."
           : "Add JSDoc or migrate this module to TypeScript for clearer contracts.",
+      suggestedCode:
+        language === "typescript"
+          ? "export async function getDashboard(userId: string): Promise<DashboardUser>"
+          : "/** @param {string} userId */\nexport async function getDashboard(userId) {",
     },
     {
       severity: "suggestion",
@@ -91,6 +114,10 @@ function pickFindings(code: string, language: CodeLanguage): ReviewFinding[] {
         "String building with + is harder to read than a template literal for URLs.",
       suggestion:
         "Use a template literal like `/api/users/${id}` (or language equivalent) for clarity.",
+      suggestedCode:
+        language === "typescript" || language === "javascript"
+          ? "const res = await fetch(`/api/users/${id}`)"
+          : 'url = f"/api/users/{id}"',
     },
     {
       severity: "info",
@@ -100,6 +127,13 @@ function pickFindings(code: string, language: CodeLanguage): ReviewFinding[] {
         "The response body is parsed without checking HTTP status first.",
       suggestion:
         "Guard with if (!res.ok) throw … before reading JSON.",
+      suggestedCode:
+        language === "typescript" || language === "javascript"
+          ? `if (!res.ok) {
+  throw new Error(\`Failed to load user (\${res.status})\`)
+}
+return res.json()`
+          : 'res.raise_for_status()\nreturn res.json()',
     },
   ]
 

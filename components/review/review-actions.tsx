@@ -2,12 +2,14 @@
 
 import { Button } from "@/components/ui/button"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { FlashIcon, Loading03Icon } from "@hugeicons/core-free-icons"
+import { FlashIcon, Loading03Icon, RefreshIcon } from "@hugeicons/core-free-icons"
 import { cn } from "@/lib/utils"
 
 interface ReviewActionsProps {
   analyzing: boolean
   disabled?: boolean
+  hasResult?: boolean
+  stale?: boolean
   source?: "gemini" | "openai" | "mock"
   onReview: () => void
 }
@@ -15,27 +17,41 @@ interface ReviewActionsProps {
 export function ReviewActions({
   analyzing,
   disabled,
+  hasResult = false,
+  stale = false,
   source,
   onReview,
 }: ReviewActionsProps) {
   const hint = analyzing
     ? "Scanning for bugs, security risks, and style issues…"
-    : source === "openai"
-      ? "Powered by OpenAI — findings and SuggestedCode are from your snippet."
-      : source === "mock"
-        ? "Mock mode — Gemini didn’t run this time. Check GEMINI_API_KEY in .env."
-        : "Powered by Gemini — findings and SuggestedCode come from your snippet."
+    : stale
+      ? "Code changed since the last review — re-run for a fresh score and findings."
+      : hasResult
+        ? "Changed the code? Run review again to refresh score and findings."
+        : source === "openai"
+          ? "Powered by OpenAI — findings and SuggestedCode are from your snippet."
+          : source === "mock"
+            ? "Mock mode — Gemini didn’t run this time. Check GEMINI_API_KEY in .env."
+            : "Powered by Gemini — findings and SuggestedCode come from your snippet."
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <p className="order-2 text-sm text-muted-foreground sm:order-1">{hint}</p>
+      <p
+        className={cn(
+          "order-2 text-sm sm:order-1",
+          stale ? "font-medium text-amber-900/80" : "text-muted-foreground"
+        )}
+      >
+        {hint}
+      </p>
       <Button
         size="lg"
         onClick={onReview}
         disabled={disabled || analyzing}
         className={cn(
           "relative order-1 w-full overflow-hidden bg-teal-600 text-white hover:bg-teal-500 sm:order-2 sm:w-auto sm:min-w-[160px]",
-          analyzing && "animate-pulse"
+          analyzing && "animate-pulse",
+          stale && !analyzing && "ring-2 ring-amber-400/50 ring-offset-2 ring-offset-[#f4fbfa]"
         )}
       >
         {analyzing ? (
@@ -47,6 +63,15 @@ export function ReviewActions({
               data-icon="inline-start"
             />
             Analyzing
+          </>
+        ) : hasResult || stale ? (
+          <>
+            <HugeiconsIcon
+              icon={RefreshIcon}
+              strokeWidth={2}
+              data-icon="inline-start"
+            />
+            Re-review
           </>
         ) : (
           <>

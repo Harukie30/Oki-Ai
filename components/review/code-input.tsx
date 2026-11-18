@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
@@ -40,19 +40,44 @@ export function CodeInput({
   onChangeLanguageStep,
 }: CodeInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const gutterRef = useRef<HTMLDivElement>(null)
+  const [lineMetrics, setLineMetrics] = useState({ lineHeight: 20, paddingTop: 12 })
+  const [scrollTop, setScrollTop] = useState(0)
   const languageLabel =
     CODE_LANGUAGES.find((lang) => lang.value === language)?.label ?? "Language"
+
+  const lineCount = useMemo(
+    () => Math.max(1, code.split("\n").length),
+    [code]
+  )
+
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+
+    const measure = () => {
+      const styles = window.getComputedStyle(el)
+      setLineMetrics({
+        lineHeight: Number.parseFloat(styles.lineHeight) || 20,
+        paddingTop: Number.parseFloat(styles.paddingTop) || 12,
+      })
+    }
+
+    measure()
+    window.addEventListener("resize", measure)
+    return () => window.removeEventListener("resize", measure)
+  }, [code])
 
   useEffect(() => {
     if (!highlightLine || highlightLine < 1) return
     const el = textareaRef.current
     if (!el) return
 
-    const styles = window.getComputedStyle(el)
-    const lineHeight = Number.parseFloat(styles.lineHeight) || 20
-    const paddingTop = Number.parseFloat(styles.paddingTop) || 0
+    const { lineHeight, paddingTop } = lineMetrics
     const target = paddingTop + (highlightLine - 1) * lineHeight
     el.scrollTop = Math.max(0, target - el.clientHeight / 3)
+    setScrollTop(el.scrollTop)
+    if (gutterRef.current) gutterRef.current.scrollTop = el.scrollTop
 
     const start =
       code.split("\n").slice(0, highlightLine - 1).join("\n").length +
@@ -60,7 +85,14 @@ export function CodeInput({
     const lineText = code.split("\n")[highlightLine - 1] ?? ""
     el.focus()
     el.setSelectionRange(start, start + lineText.length)
-  }, [highlightLine, code])
+  }, [highlightLine, code, lineMetrics])
+
+  function syncGutterScroll() {
+    const el = textareaRef.current
+    if (!el) return
+    setScrollTop(el.scrollTop)
+    if (gutterRef.current) gutterRef.current.scrollTop = el.scrollTop
+  }
 
   return (
     <div
@@ -122,23 +154,61 @@ export function CodeInput({
         </p>
       </div>
 
-      <div className="relative">
-        <Textarea
-          ref={textareaRef}
-          value={code}
-          onChange={(event) => onCodeChange(event.target.value)}
-          disabled={disabled}
-          spellCheck={false}
-          placeholder={`Paste your ${languageLabel} code here…`}
-          className={cn(
-            "ide-scroll min-h-[220px] rounded-none border-0 bg-transparent px-3 py-3 font-mono text-[12px] leading-5 text-teal-50/90 sm:min-h-[280px] sm:px-4 sm:py-4 sm:text-[13px] sm:leading-6 md:min-h-[360px]",
-            "placeholder:text-white/30 focus-visible:border-transparent focus-visible:ring-0"
-          )}
-        />
+      <div className="relative flex min-h-[220px] sm:min-h-[280px] md:min-h-[360px]">
         <div
+          ref={gutterRef}
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#0c1214] to-transparent sm:h-16"
-        />
+          className="ide-scroll pointer-events-none w-10 shrink-0 overflow-hidden border-r border-white/6 bg-black/20 py-3 text-right font-mono text-[11px] leading-5 text-white/30 sm:w-12 sm:py-4 sm:text-[12px] sm:leading-6"
+        >
+          {Array.from({ length: lineCount }, (_, index) => {
+            const line = index + 1
+            const active = highlightLine === line
+            return (
+              <div
+                key={line}
+                className={cn(
+                  "px-2 tabular-nums",
+                  active && "bg-amber-300/20 font-semibold text-amber-200"
+                )}
+              >
+                {line}
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="relative min-w-0 flex-1">
+          {highlightLine && highlightLine >= 1 && highlightLine <= lineCount ? (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 z-0 border-y border-amber-300/25 bg-amber-300/14 transition-[top] duration-200 animate-in fade-in"
+              style={{
+                top:
+                  lineMetrics.paddingTop +
+                  (highlightLine - 1) * lineMetrics.lineHeight -
+                  scrollTop,
+                height: lineMetrics.lineHeight,
+              }}
+            />
+          ) : null}
+          <Textarea
+            ref={textareaRef}
+            value={code}
+            onChange={(event) => onCodeChange(event.target.value)}
+            onScroll={syncGutterScroll}
+            disabled={disabled}
+            spellCheck={false}
+            placeholder={`Paste your ${languageLabel} code here…`}
+            className={cn(
+              "ide-scroll relative z-[1] min-h-[220px] rounded-none border-0 bg-transparent px-3 py-3 font-mono text-[12px] leading-5 text-teal-50/90 sm:min-h-[280px] sm:px-4 sm:py-4 sm:text-[13px] sm:leading-6 md:min-h-[360px]",
+              "placeholder:text-white/30 focus-visible:border-transparent focus-visible:ring-0"
+            )}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-12 bg-gradient-to-t from-[#0c1214] to-transparent sm:h-16"
+          />
+        </div>
       </div>
     </div>
   )

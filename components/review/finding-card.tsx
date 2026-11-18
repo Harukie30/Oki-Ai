@@ -1,5 +1,12 @@
 "use client"
 
+import { useEffect, useState, type MouseEvent } from "react"
+import { HugeiconsIcon } from "@hugeicons/react"
+import {
+  ArrowLeft01Icon,
+  Copy01Icon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons"
 import { Badge } from "@/components/ui/badge"
 import type { ReviewFinding } from "@/lib/review-types"
 import { cn } from "@/lib/utils"
@@ -35,6 +42,7 @@ interface FindingCardProps {
   index: number
   active?: boolean
   onSelect?: (finding: ReviewFinding) => void
+  onApplyCode?: (finding: ReviewFinding) => void
 }
 
 export function FindingCard({
@@ -42,9 +50,44 @@ export function FindingCard({
   index,
   active = false,
   onSelect,
+  onApplyCode,
 }: FindingCardProps) {
   const styles = severityStyles[finding.severity]
   const interactive = Boolean(onSelect)
+  const snippet = finding.suggestedCode?.trim() ?? ""
+  const hasSnippet = Boolean(snippet)
+  const [applied, setApplied] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    setApplied(false)
+    setCopied(false)
+  }, [finding.id, finding.suggestedCode])
+
+  useEffect(() => {
+    if (!copied) return
+    const timer = window.setTimeout(() => setCopied(false), 1600)
+    return () => window.clearTimeout(timer)
+  }, [copied])
+
+  function handleApply(event: MouseEvent) {
+    event.stopPropagation()
+    if (!snippet || !onApplyCode) return
+    onApplyCode(finding)
+    setApplied(true)
+    window.setTimeout(() => setApplied(false), 1600)
+  }
+
+  async function handleCopy(event: MouseEvent) {
+    event.stopPropagation()
+    if (!snippet) return
+    try {
+      await navigator.clipboard.writeText(snippet)
+      setCopied(true)
+    } catch {
+      setCopied(false)
+    }
+  }
 
   return (
     <article
@@ -97,6 +140,61 @@ export function FindingCard({
         <span className="font-medium">Suggestion: </span>
         {finding.suggestion}
       </p>
+
+      {hasSnippet ? (
+        <div
+          className="mt-3 overflow-hidden rounded-lg border border-teal-900/10 bg-[#0c1214] [color-scheme:dark]"
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+        >
+          <div className="flex items-center justify-between gap-2 border-b border-white/8 px-3 py-2">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-teal-300/65">
+              SuggestedCode
+            </p>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={(event) => void handleCopy(event)}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-medium transition-colors",
+                  copied
+                    ? "border-teal-400/40 bg-teal-400/15 text-teal-100"
+                    : "border-white/10 bg-white/5 text-teal-100/80 hover:border-teal-400/30 hover:bg-teal-400/10"
+                )}
+              >
+                <HugeiconsIcon
+                  icon={copied ? Tick02Icon : Copy01Icon}
+                  strokeWidth={1.75}
+                  className="size-3"
+                />
+                {copied ? "Copied" : "Copy"}
+              </button>
+              {onApplyCode ? (
+                <button
+                  type="button"
+                  onClick={handleApply}
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-medium transition-colors",
+                    applied
+                      ? "border-teal-400/40 bg-teal-400/15 text-teal-100"
+                      : "border-teal-400/30 bg-teal-400/10 text-teal-100 hover:bg-teal-400/20"
+                  )}
+                >
+                  <HugeiconsIcon
+                    icon={applied ? Tick02Icon : ArrowLeft01Icon}
+                    strokeWidth={1.75}
+                    className="size-3"
+                  />
+                  {applied ? "Applied" : "Apply"}
+                </button>
+              ) : null}
+            </div>
+          </div>
+          <pre className="max-h-28 overflow-auto px-3 py-2 font-mono text-[11px] leading-5 text-teal-50/85">
+            <code>{snippet}</code>
+          </pre>
+        </div>
+      ) : null}
     </article>
   )
 }

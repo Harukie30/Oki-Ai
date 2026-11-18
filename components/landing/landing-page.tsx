@@ -141,7 +141,7 @@ export function LandingPage() {
               />
               <p className="mt-4 max-w-md text-base leading-relaxed text-teal-950/70 sm:mt-5 sm:text-lg">
                 Paste a snippet, pick your language, and get friendly findings
-                on bugs, security, and style, clear enough to act on right away. Let AI handle the rest.
+                on bugs, security, and style, clear enough to act on right away and let AI handle the rest.
               </p>
               <Link
                 href="/about"

@@ -85,8 +85,8 @@ export function ReviewShell() {
             AI code review
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-teal-950/65 sm:text-base">
-            Write code, compare the suggested fix, then read the score and
-            findings — top to bottom, left to right.
+            Write code, compare the suggested fix, then jump findings or apply
+            local SuggestedCode — top to bottom, left to right.
           </p>
         </div>
         <ReviewWorkspace />

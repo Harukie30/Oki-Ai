@@ -1,6 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { AboutSupport } from "@/components/about/about-support"
 import { Reveal } from "@/components/landing/reveal"
 import { OkiAiLogo } from "@/components/brand/oki-ai-logo"
 import { HugeiconsIcon } from "@hugeicons/react"
@@ -16,13 +17,13 @@ const REASONS = [
     icon: Idea01Icon,
     title: "Why Oki-Ai exists",
     detail:
-      "Code reviews are valuable, but waiting for one can slow you down. Oki-Ai started as a calm place to check a snippet before you ask a teammate — or before you ship.",
+      "Code reviews are valuable, but waiting for one can slow you down. Oki-Ai started as a calm place to check a snippet before you ask a teammate or before you ship.",
   },
   {
     icon: SmileIcon,
     title: "What Oki-Ai is",
     detail:
-      "A friendly AI code reviewer. You choose a language, paste a snippet, and get a score plus clear findings on bugs, security, style, and more — explained in plain language.",
+      "A friendly AI code reviewer. You choose a language, paste a snippet, and get a score plus clear findings on bugs, security, style, and more explained in plain language.",
   },
   {
     icon: FavouriteIcon,
@@ -102,7 +103,7 @@ export function AboutPage() {
               A calmer way to understand your code
             </h1>
             <p className="mt-4 max-w-xl text-base leading-relaxed text-teal-950/65 sm:text-lg">
-              Oki-Ai is built to feel helpful, not intimidating — a soft place to
+              Oki-Ai is built to feel helpful, not intimidating, a soft place to
               paste a snippet and leave with clearer next steps.
             </p>
           </Reveal>
@@ -170,6 +171,14 @@ export function AboutPage() {
                 </Reveal>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section className="border-t border-teal-900/8 bg-white/25">
+          <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-8 sm:py-20">
+            <Reveal variant="up" delayMs={40}>
+              <AboutSupport />
+            </Reveal>
           </div>
         </section>
 

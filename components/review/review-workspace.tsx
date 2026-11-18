@@ -59,6 +59,37 @@ function Panel({
   return <div className={cn("min-w-0", className)}>{children}</div>
 }
 
+function AnalyzingBanner({ compact = false }: { compact?: boolean }) {
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-3 rounded-2xl border border-teal-700/15 bg-white/90 shadow-sm backdrop-blur-sm",
+        compact ? "px-4 py-2" : "w-full max-w-md flex-col px-5 py-4 sm:flex-row"
+      )}
+    >
+      <span className="relative flex size-2.5 shrink-0">
+        <span className="absolute inline-flex size-full animate-ping rounded-full bg-teal-400/70 opacity-75" />
+        <span className="relative inline-flex size-2.5 rounded-full bg-teal-500" />
+      </span>
+      <div className={cn("min-w-0", !compact && "text-center sm:text-left")}>
+        <p className="text-xs font-semibold text-teal-950">
+          {compact ? "Review running — editors locked" : "Running review…"}
+        </p>
+        {!compact ? (
+          <p className="mt-0.5 text-[11px] text-teal-900/55">
+            Scoring quality, flagging risks, drafting SuggestedCode
+          </p>
+        ) : null}
+      </div>
+      {!compact ? (
+        <div className="h-1 w-28 overflow-hidden rounded-full bg-teal-100 sm:ml-auto">
+          <div className="h-full w-1/2 animate-[scan_1.2s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-teal-300 via-teal-500 to-cyan-400" />
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 export function ReviewWorkspace() {
   const [step, setStep] = useState<WorkspaceStep>("language")
   const [code, setCode] = useState("")
@@ -70,10 +101,19 @@ export function ReviewWorkspace() {
   const [activeFindingId, setActiveFindingId] = useState<string | null>(null)
   const [highlightLine, setHighlightLine] = useState<number | null>(null)
   const [baselineCode, setBaselineCode] = useState("")
+  const [reviewedCode, setReviewedCode] = useState("")
 
   const analyzing = status === "analyzing"
   const readyToReview = Boolean(language && code.trim())
-  const reviewReady = Boolean(result && status === "ready")
+  const hasResult = Boolean(result)
+  const resultsStale =
+    hasResult && !analyzing && status === "ready" && code !== reviewedCode
+  const showCompare = hasResult && Boolean(result?.revisedCode)
+  const showResults = hasResult
+
+  function markCodeChanged(nextCode: string) {
+    setCode(nextCode)
+  }
 
   async function handleReview() {
     if (!language || !code.trim()) return
@@ -82,10 +122,15 @@ export function ReviewWorkspace() {
     setError(null)
     setActiveFindingId(null)
     setHighlightLine(null)
+    document
+      .getElementById("review-understand")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" })
+
     try {
       const next = await runReview({ code, language })
       setResult(next)
       setBaselineCode(code)
+      setReviewedCode(code)
       setStatus("ready")
       setCompareMode("editors")
     } catch (err) {
@@ -102,6 +147,7 @@ export function ReviewWorkspace() {
     setError(null)
     setActiveFindingId(null)
     setHighlightLine(null)
+    setReviewedCode("")
   }
 
   function handleChangeLanguageStep() {
@@ -112,9 +158,30 @@ export function ReviewWorkspace() {
 
   function handleApplySuggestedCode() {
     if (!result?.revisedCode) return
-    setCode(result.revisedCode)
+    markCodeChanged(result.revisedCode)
     setActiveFindingId(null)
     setHighlightLine(null)
+  }
+
+  function handleApplyFindingCode(finding: ReviewFinding) {
+    const snippet = finding.suggestedCode?.trim()
+    if (!snippet) return
+
+    const lines = code.split("\n")
+    const start = Math.max(0, Math.min(lines.length - 1, finding.line - 1))
+    const replacement = snippet.split("\n")
+    const next = [
+      ...lines.slice(0, start),
+      ...replacement,
+      ...lines.slice(start + 1),
+    ]
+    markCodeChanged(next.join("\n"))
+    setActiveFindingId(finding.id)
+    setHighlightLine(start + 1)
+    setCompareMode("editors")
+    document
+      .getElementById("review-compare")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
   function handleSelectFinding(finding: ReviewFinding) {
@@ -138,14 +205,16 @@ export function ReviewWorkspace() {
         }}
       />
 
-      <section id="review-compare" className="min-w-0 scroll-mt-24">
+      <section id="review-compare" className="relative min-w-0 scroll-mt-24">
         <SectionLabel
-          step={reviewReady ? "Step 1 · Compare" : "Step 1 · Write"}
+          step={showCompare ? "Step 1 · Compare" : "Step 1 · Write"}
           title={
-            reviewReady ? "Your code and the suggested fix" : "Paste your code"
+            showCompare
+              ? "Your code and the suggested fix"
+              : "Paste your code"
           }
           detail={
-            reviewReady
+            showCompare
               ? "Apply SuggestedCode, or open Diff to see what changed."
               : "Choose a language, paste a snippet, then run the review."
           }
@@ -154,8 +223,16 @@ export function ReviewWorkspace() {
         {step === "language" || !language ? (
           <LanguagePicker onSelect={handleLanguageSelect} />
         ) : (
-          <div className="space-y-4">
-            {reviewReady ? (
+          <div className="relative space-y-4">
+            {analyzing ? (
+              <div className="pointer-events-none absolute inset-0 z-10 rounded-2xl bg-[#f4fbfa]/60 backdrop-blur-[1.5px]">
+                <div className="sticky top-24 mx-auto mt-10 w-fit">
+                  <AnalyzingBanner compact />
+                </div>
+              </div>
+            ) : null}
+
+            {showCompare ? (
               <div className="inline-flex rounded-xl border border-teal-900/10 bg-white/60 p-1 backdrop-blur-sm">
                 {(
                   [
@@ -167,8 +244,9 @@ export function ReviewWorkspace() {
                     key={mode}
                     type="button"
                     onClick={() => setCompareMode(mode)}
+                    disabled={analyzing}
                     className={cn(
-                      "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+                      "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50",
                       compareMode === mode
                         ? "bg-teal-700 text-white"
                         : "text-teal-900/60 hover:bg-teal-900/5 hover:text-teal-950"
@@ -180,14 +258,13 @@ export function ReviewWorkspace() {
               </div>
             ) : null}
 
-            {reviewReady && compareMode === "diff" && result?.revisedCode ? (
+            {showCompare && compareMode === "diff" && result?.revisedCode ? (
               <CodeDiffPanel before={baselineCode} after={result.revisedCode} />
             ) : (
               <div
                 className={cn(
                   "grid min-w-0 items-center gap-4",
-                  reviewReady &&
-                    "xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]"
+                  showCompare && "xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]"
                 )}
               >
                 <Panel>
@@ -196,19 +273,20 @@ export function ReviewWorkspace() {
                     language={language}
                     disabled={analyzing}
                     highlightLine={highlightLine}
-                    onCodeChange={setCode}
+                    onCodeChange={markCodeChanged}
                     onLanguageChange={(next) => {
                       setLanguage(next)
                       setResult(null)
                       setStatus("idle")
                       setActiveFindingId(null)
                       setHighlightLine(null)
+                      setReviewedCode("")
                     }}
                     onChangeLanguageStep={handleChangeLanguageStep}
                   />
                 </Panel>
 
-                {reviewReady && result?.revisedCode ? (
+                {showCompare && result?.revisedCode ? (
                   <>
                     <div
                       aria-hidden
@@ -237,11 +315,13 @@ export function ReviewWorkspace() {
             <ReviewActions
               analyzing={analyzing}
               disabled={!readyToReview}
+              hasResult={showResults}
+              stale={resultsStale}
               source={result?.source}
               onReview={handleReview}
             />
 
-            {result?.notice && reviewReady ? (
+            {result?.notice && showResults && !analyzing ? (
               <p className="rounded-xl border border-amber-200/80 bg-amber-50 px-3 py-2 text-sm text-amber-900/80">
                 {result.notice}
               </p>
@@ -250,43 +330,78 @@ export function ReviewWorkspace() {
         )}
       </section>
 
-      <section className="min-w-0">
+      <section id="review-understand" className="min-w-0 scroll-mt-24">
         <SectionLabel
           step="Step 2 · Understand"
           title="Score and findings"
-          detail="Start with the summary, then click a finding to jump to that line."
+          detail="Filter by severity, jump to a line, or apply a local snippet."
         />
 
-        {reviewReady && result ? (
-          <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.15fr)] lg:items-start">
+        {analyzing ? (
+          <div className="mb-4">
+            <AnalyzingBanner />
+          </div>
+        ) : null}
+
+        {resultsStale && result ? (
+          <div className="mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm text-amber-950/85">
+            Findings below are from the previous review. Hit{" "}
+            <span className="font-semibold">Re-review</span> after your edits.
+          </div>
+        ) : null}
+
+        {showResults && result ? (
+          <div
+            className={cn(
+              "grid min-w-0 gap-4 transition-[opacity,filter] duration-300 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.15fr)] lg:items-start",
+              (resultsStale || analyzing) && "opacity-70",
+              analyzing && "pointer-events-none saturate-75"
+            )}
+          >
             <ReviewSummaryCard result={result} />
             <FindingsCard
               result={result}
               activeFindingId={activeFindingId}
               onSelectFinding={handleSelectFinding}
+              onApplyFindingCode={handleApplyFindingCode}
             />
           </div>
         ) : (
-          <div className="flex min-h-[200px] flex-col items-start justify-center rounded-xl border border-dashed border-teal-700/20 bg-white/50 px-4 py-8 backdrop-blur-sm sm:min-h-[260px] sm:rounded-2xl sm:px-6 sm:py-10">
-            <p className="text-sm font-medium text-teal-900/80">
-              {analyzing
-                ? "Running review…"
-                : step === "language"
-                  ? "Choose a language to begin"
-                  : "Results will show up here"}
-            </p>
-            <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-              {analyzing
-                ? "Scoring quality, flagging risks, and drafting a suggested fix you can copy or apply."
-                : step === "language"
-                  ? "Start with the language type, then paste your snippet in the editor."
-                  : "Hit Review to compare code, open a Diff, and jump from findings to lines."}
-            </p>
+          <div className="relative flex min-h-[200px] flex-col items-start justify-center overflow-hidden rounded-xl border border-dashed border-teal-700/20 bg-white/50 px-4 py-8 backdrop-blur-sm sm:min-h-[260px] sm:rounded-2xl sm:px-6 sm:py-10">
             {analyzing ? (
-              <div className="mt-6 h-1 w-40 overflow-hidden rounded-full bg-teal-100">
-                <div className="h-full w-1/2 animate-[scan_1.2s_ease-in-out_infinite] rounded-full bg-teal-500" />
-              </div>
-            ) : null}
+              <>
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(45,212,191,0.18),transparent_55%)]"
+                />
+                <p className="relative text-[10px] font-semibold uppercase tracking-[0.2em] text-teal-700/60">
+                  scan · score · findings
+                </p>
+                <p className="relative mt-3 text-sm font-medium text-teal-900/85">
+                  Building your review…
+                </p>
+                <p className="relative mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+                  Checking bugs, security risks, and drafting a SuggestedCode
+                  rewrite you can copy or apply.
+                </p>
+                <div className="relative mt-6 h-1 w-44 overflow-hidden rounded-full bg-teal-100">
+                  <div className="absolute inset-y-0 w-1/2 animate-[scan_1.2s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-teal-300 via-teal-500 to-cyan-400" />
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-medium text-teal-900/80">
+                  {step === "language"
+                    ? "Choose a language to begin"
+                    : "Results will show up here"}
+                </p>
+                <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+                  {step === "language"
+                    ? "Start with the language type, then paste your snippet in the editor."
+                    : "Hit Review to compare code, open a Diff, and jump from findings to lines."}
+                </p>
+              </>
+            )}
           </div>
         )}
       </section>

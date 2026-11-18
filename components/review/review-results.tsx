@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react"
 import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { FindingCard } from "@/components/review/finding-card"
 import type {
   FindingSeverity,
@@ -16,12 +15,36 @@ interface ReviewResultsProps {
   result: ReviewResult
 }
 
-const FILTERS: { value: "all" | FindingSeverity; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "critical", label: "Critical" },
-  { value: "warning", label: "Warning" },
-  { value: "info", label: "Info" },
-  { value: "suggestion", label: "Tips" },
+const FILTERS: {
+  value: "all" | FindingSeverity
+  label: string
+  styles: string
+}[] = [
+  {
+    value: "all",
+    label: "All",
+    styles: "bg-teal-900/6 text-teal-950 border-teal-900/12",
+  },
+  {
+    value: "critical",
+    label: "Critical",
+    styles: "bg-rose-500/12 text-rose-800 border-rose-500/20",
+  },
+  {
+    value: "warning",
+    label: "Warning",
+    styles: "bg-amber-500/12 text-amber-900 border-amber-500/20",
+  },
+  {
+    value: "info",
+    label: "Info",
+    styles: "bg-sky-500/12 text-sky-900 border-sky-500/20",
+  },
+  {
+    value: "suggestion",
+    label: "Tips",
+    styles: "bg-teal-500/12 text-teal-900 border-teal-500/20",
+  },
 ]
 
 const cardClass =
@@ -101,11 +124,13 @@ export function FindingsCard({
   className,
   activeFindingId = null,
   onSelectFinding,
+  onApplyFindingCode,
 }: {
   result: ReviewResult
   className?: string
   activeFindingId?: string | null
   onSelectFinding?: (finding: ReviewFinding) => void
+  onApplyFindingCode?: (finding: ReviewFinding) => void
 }) {
   const [filter, setFilter] = useState<"all" | FindingSeverity>("all")
 
@@ -142,7 +167,7 @@ export function FindingsCard({
             Findings
           </h3>
           <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
-            Click a finding to jump to that line in your code.
+            Jump to a line, or apply a local SuggestedCode snippet.
           </p>
         </div>
         <span className="shrink-0 rounded-full border border-teal-900/10 bg-teal-500/8 px-2.5 py-1 text-[11px] font-medium tabular-nums text-teal-900/70">
@@ -151,69 +176,53 @@ export function FindingsCard({
         </span>
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        {(
-          [
-            ["critical", "Critical", "bg-rose-500/12 text-rose-800 border-rose-500/20"],
-            ["warning", "Warning", "bg-amber-500/12 text-amber-900 border-amber-500/20"],
-            ["info", "Info", "bg-sky-500/12 text-sky-900 border-sky-500/20"],
-            ["suggestion", "Tips", "bg-teal-500/12 text-teal-900 border-teal-500/20"],
-          ] as const
-        ).map(([key, label, styles]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setFilter(key)}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-opacity",
-              styles,
-              filter !== "all" && filter !== key && "opacity-45"
-            )}
-          >
-            {label}
-            <span className="tabular-nums opacity-70">{filterCounts[key]}</span>
-          </button>
-        ))}
+      <div className="mb-4 flex flex-wrap gap-2" role="tablist" aria-label="Filter findings">
+        {FILTERS.map((item) => {
+          const selected = filter === item.value
+          return (
+            <button
+              key={item.value}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              onClick={() => setFilter(item.value)}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-[opacity,background-color,box-shadow]",
+                item.styles,
+                selected
+                  ? "opacity-100 shadow-sm ring-1 ring-teal-900/10"
+                  : "opacity-55 hover:opacity-85"
+              )}
+            >
+              {item.label}
+              <span className="tabular-nums opacity-70">
+                {filterCounts[item.value]}
+              </span>
+            </button>
+          )
+        })}
       </div>
 
-      <Tabs
-        value={filter}
-        onValueChange={(value) => setFilter(value as "all" | FindingSeverity)}
-      >
-        <div className="mb-4 -mx-1 overflow-x-auto px-1">
-          <TabsList className="inline-flex w-max min-w-full flex-nowrap gap-1 sm:min-w-0 sm:flex-wrap">
-            {FILTERS.map((item) => (
-              <TabsTrigger key={item.value} value={item.value}>
-                {item.label}
-                <span className="ml-1.5 tabular-nums opacity-60">
-                  {filterCounts[item.value]}
-                </span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
+      <ScrollArea className="h-[280px] pr-2 sm:h-[340px] sm:pr-3">
+        <div className="flex flex-col gap-3 pb-2">
+          {filtered.length === 0 ? (
+            <p className="py-10 text-center text-sm text-muted-foreground">
+              No findings in this filter.
+            </p>
+          ) : (
+            filtered.map((finding, index) => (
+              <FindingCard
+                key={finding.id}
+                finding={finding}
+                index={index}
+                active={activeFindingId === finding.id}
+                onSelect={onSelectFinding}
+                onApplyCode={onApplyFindingCode}
+              />
+            ))
+          )}
         </div>
-        <TabsContent value={filter} className="min-h-0 flex-1">
-          <ScrollArea className="h-[280px] pr-2 sm:h-[340px] sm:pr-3">
-            <div className="flex flex-col gap-3 pb-2">
-              {filtered.length === 0 ? (
-                <p className="py-10 text-center text-sm text-muted-foreground">
-                  No findings in this filter.
-                </p>
-              ) : (
-                filtered.map((finding, index) => (
-                  <FindingCard
-                    key={finding.id}
-                    finding={finding}
-                    index={index}
-                    active={activeFindingId === finding.id}
-                    onSelect={onSelectFinding}
-                  />
-                ))
-              )}
-            </div>
-          </ScrollArea>
-        </TabsContent>
-      </Tabs>
+      </ScrollArea>
     </section>
   )
 }
