@@ -289,6 +289,20 @@ body::-webkit-scrollbar-corner {
   animation: oki-step-stem 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.18s forwards;
 }
 
+.oki-help-underline {
+  transform: scaleX(0.35);
+  opacity: 0.55;
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s ease;
+}
+
+.group\/help:hover .oki-help-underline,
+.group\/help:focus-within .oki-help-underline {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .oki-float {
     animation: none;
@@ -308,6 +322,14 @@ body::-webkit-scrollbar-corner {
     animation: none;
     opacity: 1;
     transform: none;
+  }
+
+  .oki-help-underline,
+  .group\/help:hover .oki-help-underline,
+  .group\/help:focus-within .oki-help-underline {
+    transform: none;
+    opacity: 1;
+    transition: none;
   }
 }
 

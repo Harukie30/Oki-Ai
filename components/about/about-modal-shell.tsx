@@ -69,7 +69,7 @@ export function AboutModalShell({
         aria-labelledby={labelledBy}
         aria-describedby={describedBy}
         className={cn(
-          "relative w-full overflow-hidden rounded-[1.75rem] border border-teal-900/10 bg-[#f7fffe]",
+          "relative flex w-full max-h-[min(92dvh,40rem)] flex-col overflow-hidden rounded-[1.75rem] border border-teal-900/10 bg-[#f7fffe]",
           "shadow-[0_36px_90px_-30px_rgba(8,60,70,0.58)]",
           "animate-in fade-in zoom-in-95 duration-200",
           maxWidthClassName,
@@ -115,7 +115,9 @@ export function AboutModalShell({
           <HugeiconsIcon icon={Cancel01Icon} strokeWidth={1.75} className="size-4" />
         </button>
 
-        <div className="relative">{children}</div>
+        <div className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          {children}
+        </div>
       </div>
     </div>,
     document.body

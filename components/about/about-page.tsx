@@ -4,13 +4,17 @@ import { AboutHeroLogo } from "@/components/about/about-hero-logo"
 import { AboutSupport } from "@/components/about/about-support"
 import { Reveal } from "@/components/landing/reveal"
 import { OkiAiLogo } from "@/components/brand/oki-ai-logo"
-import { HugeiconsIcon } from "@hugeicons/react"
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react"
 import {
   ArrowRight01Icon,
   FavouriteIcon,
   Idea01Icon,
+  LaptopProgrammingIcon,
+  Mortarboard01Icon,
   SmileIcon,
+  UserGroupIcon,
 } from "@hugeicons/core-free-icons"
+import { cn } from "@/lib/utils"
 
 const REASONS = [
   {
@@ -33,20 +37,37 @@ const REASONS = [
   },
 ] as const
 
-const HELPS = [
+const HELPS: {
+  title: string
+  detail: string
+  icon: IconSvgElement
+  accent: string
+  glow: string
+}[] = [
   {
     title: "Students & learners",
-    detail: "Understand what might be wrong and how to improve, without harsh jargon.",
+    detail:
+      "Understand what might be wrong and how to improve, without harsh jargon.",
+    icon: Mortarboard01Icon,
+    accent: "bg-teal-500/12 text-teal-800",
+    glow: "group-hover/help:bg-teal-300/35",
   },
   {
     title: "Solo builders",
     detail: "Get a quick review when you don’t have another pair of eyes nearby.",
+    icon: LaptopProgrammingIcon,
+    accent: "bg-cyan-500/12 text-cyan-900",
+    glow: "group-hover/help:bg-cyan-300/30",
   },
   {
     title: "Small teams",
-    detail: "Tighten snippets before a PR so human review can focus on the bigger ideas.",
+    detail:
+      "Tighten snippets before a PR so human review can focus on the bigger ideas.",
+    icon: UserGroupIcon,
+    accent: "bg-emerald-500/12 text-emerald-900",
+    glow: "group-hover/help:bg-emerald-300/30",
   },
-] as const
+]
 
 export function AboutPage() {
   return (
@@ -151,8 +172,21 @@ export function AboutPage() {
           </div>
         </section>
 
-        <section className="border-y border-teal-900/8 bg-white/35">
-          <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-8 sm:py-20">
+        <section className="relative isolate overflow-hidden border-y border-teal-900/8 bg-white/35">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_50%_0%,rgba(45,212,191,0.12),transparent_58%)]"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -left-20 top-1/2 size-[280px] -translate-y-1/2 rounded-full bg-teal-300/15 blur-3xl"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-16 bottom-0 size-[240px] rounded-full bg-cyan-300/15 blur-3xl"
+          />
+
+          <div className="relative mx-auto w-full max-w-6xl px-4 py-14 sm:px-8 sm:py-20">
             <Reveal variant="up" delayMs={40}>
               <div className="mx-auto max-w-2xl text-center">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-teal-700/70 sm:text-[11px]">
@@ -168,23 +202,77 @@ export function AboutPage() {
               </div>
             </Reveal>
 
-            <div className="mt-10 grid gap-8 sm:mt-14 sm:grid-cols-3">
+            <div className="relative mt-10 grid gap-5 sm:mt-14 sm:grid-cols-3 sm:gap-6 lg:gap-8">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute left-[18%] right-[18%] top-[2.15rem] hidden h-px sm:block"
+              >
+                <div className="h-full w-full bg-gradient-to-r from-teal-500/0 via-teal-600/30 to-teal-500/0" />
+              </div>
+
               {HELPS.map((item, index) => (
                 <Reveal
                   key={item.title}
-                  variant="scale"
-                  delayMs={120 + index * 120}
+                  variant="up"
+                  delayMs={120 + index * 140}
                 >
-                  <div className="text-center sm:text-left">
-                    <p className="font-mono text-[11px] tracking-[0.16em] text-teal-700/50">
-                      0{index + 1}
-                    </p>
-                    <h3 className="mt-3 text-lg font-semibold tracking-tight text-teal-950">
-                      {item.title}
-                    </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-teal-950/65">
-                      {item.detail}
-                    </p>
+                  <div
+                    className={cn(
+                      "group/help relative h-full overflow-hidden rounded-[1.5rem] px-5 py-6 text-center sm:px-6 sm:py-7 sm:text-left",
+                      "transition-[transform,background-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                      "hover:-translate-y-1 hover:bg-white/70 hover:shadow-[0_24px_50px_-28px_rgba(8,60,70,0.45)]",
+                      "focus-within:-translate-y-1 focus-within:bg-white/70"
+                    )}
+                  >
+                    <div
+                      aria-hidden
+                      className={cn(
+                        "pointer-events-none absolute -right-8 -top-10 size-36 rounded-full blur-3xl transition-opacity duration-500",
+                        "opacity-0",
+                        item.glow,
+                        "group-hover/help:opacity-100 group-focus-within/help:opacity-100"
+                      )}
+                    />
+
+                    <div className="relative flex flex-col items-center sm:items-start">
+                      <div className="relative">
+                        <div
+                          className={cn(
+                            "flex size-12 items-center justify-center rounded-2xl ring-1 ring-teal-900/5",
+                            "transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                            "group-hover/help:scale-110 group-hover/help:-rotate-3",
+                            item.accent
+                          )}
+                        >
+                          <HugeiconsIcon
+                            icon={item.icon}
+                            strokeWidth={1.75}
+                            className="size-5"
+                          />
+                        </div>
+                        <span
+                          className={cn(
+                            "absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full",
+                            "bg-teal-950 font-mono text-[9px] font-semibold text-teal-50",
+                            "ring-2 ring-white/80 transition-transform duration-500",
+                            "group-hover/help:scale-110"
+                          )}
+                        >
+                          0{index + 1}
+                        </span>
+                      </div>
+
+                      <h3 className="mt-5 text-lg font-semibold tracking-tight text-teal-950">
+                        {item.title}
+                      </h3>
+                      <span
+                        aria-hidden
+                        className="oki-help-underline mt-2 block h-px w-10 origin-left bg-gradient-to-r from-teal-500/70 to-teal-400/20 sm:origin-left"
+                      />
+                      <p className="mt-3 text-sm leading-relaxed text-teal-950/65">
+                        {item.detail}
+                      </p>
+                    </div>
                   </div>
                 </Reveal>
               ))}
