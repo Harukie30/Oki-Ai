@@ -209,9 +209,105 @@ body::-webkit-scrollbar-corner {
   animation: oki-float 5.5s ease-in-out infinite;
 }
 
+/* How it works — step hover pop (overshoot → float) + stem draw */
+@keyframes oki-step-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.78);
+  }
+  62% {
+    opacity: 1;
+    transform: translateY(-3px) scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes oki-step-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes oki-step-glow {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes oki-step-stem {
+  0% {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.oki-step-hover-pop {
+  opacity: 0;
+  transform: translateY(12px) scale(0.78);
+}
+
+.group\/step:hover .oki-step-hover-pop,
+.group\/step:focus-within .oki-step-hover-pop {
+  animation:
+    oki-step-pop 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+    oki-step-bob 2.6s ease-in-out 0.55s infinite;
+}
+
+.oki-step-hover-glow {
+  opacity: 0;
+}
+
+.group\/step:hover .oki-step-hover-glow,
+.group\/step:focus-within .oki-step-hover-glow {
+  animation: oki-step-glow 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.12s forwards;
+}
+
+.oki-step-hover-stem {
+  opacity: 0;
+  transform: scaleY(0);
+  transform-origin: top center;
+}
+
+.group\/step:hover .oki-step-hover-stem,
+.group\/step:focus-within .oki-step-hover-stem {
+  animation: oki-step-stem 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.18s forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .oki-float {
     animation: none;
+  }
+
+  .group\/step:hover .oki-step-hover-pop,
+  .group\/step:focus-within .oki-step-hover-pop {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .group\/step:hover .oki-step-hover-glow,
+  .group\/step:focus-within .oki-step-hover-glow,
+  .group\/step:hover .oki-step-hover-stem,
+  .group\/step:focus-within .oki-step-hover-stem {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 }
 
