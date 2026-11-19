@@ -132,10 +132,16 @@ export async function runAutoReview(
 
   if (ok.length === 1) {
     const only = ok[0]
+    const otherBusy =
+      errors[0]?.toLowerCase().includes("503") ||
+      errors[0]?.toLowerCase().includes("busy") ||
+      errors[0]?.toLowerCase().includes("high demand")
     return {
       ...only.result,
       contributors: [only.id],
-      notice: `Auto used ${only.id === "groq" ? "Groq" : "Gemini"} only — the other model didn’t finish (${errors[0] || "unavailable"}).`,
+      notice: otherBusy
+        ? `Auto used ${only.id === "groq" ? "Groq" : "Gemini"} — the other model was busy. Try Auto again in a moment.`
+        : `Auto used ${only.id === "groq" ? "Groq" : "Gemini"} only — the other model didn’t finish.`,
     }
   }
 

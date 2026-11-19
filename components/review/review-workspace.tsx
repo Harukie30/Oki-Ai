@@ -21,6 +21,12 @@ import type {
   ReviewStatus,
 } from "@/lib/review-types"
 import { cn } from "@/lib/utils"
+import { HugeiconsIcon } from "@hugeicons/react"
+import {
+  ArrowDown01Icon,
+  ArrowUp01Icon,
+  Settings02Icon,
+} from "@hugeicons/core-free-icons"
 
 type WorkspaceStep = "language" | "paste"
 type CompareMode = "editors" | "diff"
@@ -97,6 +103,7 @@ export function ReviewWorkspace() {
   const [code, setCode] = useState("")
   const [language, setLanguage] = useState<CodeLanguage | null>(null)
   const [provider, setProvider] = useState<ReviewProvider>("auto")
+  const [optionsOpen, setOptionsOpen] = useState(false)
   const [status, setStatus] = useState<ReviewStatus>("idle")
   const [result, setResult] = useState<ReviewResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -315,13 +322,70 @@ export function ReviewWorkspace() {
               </div>
             )}
 
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <ProviderToggle
-                value={provider}
-                disabled={analyzing}
-                onChange={setProvider}
-                className="w-full sm:max-w-md"
-              />
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  aria-expanded={optionsOpen}
+                  aria-controls="review-options-panel"
+                  disabled={analyzing}
+                  onClick={() => setOptionsOpen((open) => !open)}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full border border-teal-900/10 bg-white/80 px-2.5 py-1.5",
+                    "text-[11px] font-medium text-teal-900/70 shadow-sm backdrop-blur-sm",
+                    "transition-[background-color,color,box-shadow] duration-200",
+                    "hover:bg-teal-50 hover:text-teal-950",
+                    "disabled:cursor-not-allowed disabled:opacity-60",
+                    optionsOpen && "border-teal-500/25 bg-teal-50 text-teal-900"
+                  )}
+                >
+                  <HugeiconsIcon
+                    icon={Settings02Icon}
+                    strokeWidth={1.75}
+                    className="size-3.5"
+                  />
+                  <span>
+                    {provider === "auto"
+                      ? "Auto"
+                      : provider === "groq"
+                        ? "Groq"
+                        : "Gemini"}
+                  </span>
+                  <HugeiconsIcon
+                    icon={optionsOpen ? ArrowUp01Icon : ArrowDown01Icon}
+                    strokeWidth={1.75}
+                    className="size-3.5 opacity-60"
+                  />
+                </button>
+
+                {result?.notice && showResults && !analyzing ? (
+                  <p className="max-w-full truncate rounded-full border border-amber-200/80 bg-amber-50 px-2.5 py-1 text-[11px] text-amber-900/75 sm:max-w-md">
+                    {result.notice}
+                  </p>
+                ) : null}
+              </div>
+
+              <div
+                id="review-options-panel"
+                className={cn(
+                  "grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                  optionsOpen
+                    ? "grid-rows-[1fr] opacity-100"
+                    : "grid-rows-[0fr] opacity-0"
+                )}
+              >
+                <div className="overflow-hidden">
+                  <div className="pb-1">
+                    <ProviderToggle
+                      value={provider}
+                      disabled={analyzing}
+                      onChange={setProvider}
+                      className="w-full max-w-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <ReviewActions
                 analyzing={analyzing}
                 disabled={!readyToReview}
@@ -330,15 +394,8 @@ export function ReviewWorkspace() {
                 source={result?.source}
                 selectedProvider={provider}
                 onReview={handleReview}
-                className="w-full sm:w-auto sm:flex-1 sm:justify-end"
               />
             </div>
-
-            {result?.notice && showResults && !analyzing ? (
-              <p className="rounded-xl border border-amber-200/80 bg-amber-50 px-3 py-2 text-sm text-amber-900/80">
-                {result.notice}
-              </p>
-            ) : null}
           </div>
         )}
       </section>
