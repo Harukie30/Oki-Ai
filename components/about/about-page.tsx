@@ -196,7 +196,7 @@ export function AboutPage() {
                   Helpful when you need a gentle second look
                 </h2>
                 <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-teal-950/65 sm:text-base">
-                  Oki-Ai is most useful when you want clarity quickly — before a
+                  Oki-Ai is most useful when you want clarity quickly before a
                   commit, during practice, or when you’re stuck on a snippet.
                 </p>
               </div>

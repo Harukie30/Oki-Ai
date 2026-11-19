@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react"
 import { CodeDiffPanel } from "@/components/review/code-diff-panel"
 import { CodeInput } from "@/components/review/code-input"
 import { LanguagePicker } from "@/components/review/language-picker"
+import { ProviderToggle } from "@/components/review/provider-toggle"
 import { ReviewActions } from "@/components/review/review-actions"
 import { ReviewErrorModal } from "@/components/review/review-error-modal"
 import {
@@ -16,6 +17,7 @@ import { runReview, type ReviewResponse } from "@/lib/run-review"
 import type {
   CodeLanguage,
   ReviewFinding,
+  ReviewProvider,
   ReviewStatus,
 } from "@/lib/review-types"
 import { cn } from "@/lib/utils"
@@ -94,6 +96,7 @@ export function ReviewWorkspace() {
   const [step, setStep] = useState<WorkspaceStep>("language")
   const [code, setCode] = useState("")
   const [language, setLanguage] = useState<CodeLanguage | null>(null)
+  const [provider, setProvider] = useState<ReviewProvider>("auto")
   const [status, setStatus] = useState<ReviewStatus>("idle")
   const [result, setResult] = useState<ReviewResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -127,7 +130,7 @@ export function ReviewWorkspace() {
       ?.scrollIntoView({ behavior: "smooth", block: "start" })
 
     try {
-      const next = await runReview({ code, language })
+      const next = await runReview({ code, language, provider })
       setResult(next)
       setBaselineCode(code)
       setReviewedCode(code)
@@ -312,14 +315,24 @@ export function ReviewWorkspace() {
               </div>
             )}
 
-            <ReviewActions
-              analyzing={analyzing}
-              disabled={!readyToReview}
-              hasResult={showResults}
-              stale={resultsStale}
-              source={result?.source}
-              onReview={handleReview}
-            />
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <ProviderToggle
+                value={provider}
+                disabled={analyzing}
+                onChange={setProvider}
+                className="w-full sm:max-w-md"
+              />
+              <ReviewActions
+                analyzing={analyzing}
+                disabled={!readyToReview}
+                hasResult={showResults}
+                stale={resultsStale}
+                source={result?.source}
+                selectedProvider={provider}
+                onReview={handleReview}
+                className="w-full sm:w-auto sm:flex-1 sm:justify-end"
+              />
+            </div>
 
             {result?.notice && showResults && !analyzing ? (
               <p className="rounded-xl border border-amber-200/80 bg-amber-50 px-3 py-2 text-sm text-amber-900/80">

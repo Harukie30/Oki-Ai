@@ -19,9 +19,13 @@ export type FindingSeverity = "critical" | "warning" | "info" | "suggestion"
 
 export type FindingCategory = "bug" | "security" | "style" | "performance"
 
+export type ReviewProvider = "auto" | "gemini" | "groq"
+
 export interface ReviewRequest {
   code: string
   language: CodeLanguage
+  /** Preferred model provider for this review. */
+  provider?: ReviewProvider
 }
 
 export interface ReviewFinding {

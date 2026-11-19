@@ -7,6 +7,30 @@ import { Alert02Icon, Cancel01Icon } from "@hugeicons/core-free-icons"
 
 function getErrorCopy(message: string): { title: string; detail: string } {
   const lower = message.toLowerCase()
+  const isGroq = lower.includes("groq")
+  const isOpenAi = lower.includes("openai")
+  const providerLabel = isGroq ? "Groq" : isOpenAi ? "OpenAI" : "Gemini"
+
+  if (lower.includes("no credits") || lower.includes("insufficient_quota")) {
+    return {
+      title: "No API credits",
+      detail: message.trim(),
+    }
+  }
+
+  if (
+    lower.includes("model unavailable") ||
+    lower.includes("model_not_found") ||
+    lower.includes("does not exist") ||
+    (lower.includes("404") && lower.includes("model"))
+  ) {
+    return {
+      title: "Model unavailable",
+      detail: message.trim()
+        ? message.trim()
+        : `The selected ${providerLabel} model isn’t available for this key. Update the model in .env, then retry.`,
+    }
+  }
 
   if (
     lower.includes("timed out") ||
@@ -15,28 +39,22 @@ function getErrorCopy(message: string): { title: string; detail: string } {
     lower.includes("503") ||
     lower.includes("429") ||
     lower.includes("busy") ||
-    lower.includes("unavailable")
+    lower.includes("rate limit")
   ) {
     return {
       title: "AI is taking too long",
-      detail:
-        "Gemini didn’t finish in time — often high demand or a large snippet. Wait a moment, try a shorter piece of code, then retry.",
-    }
-  }
-
-  if (lower.includes("404") || lower.includes("no longer available")) {
-    return {
-      title: "Model unavailable",
-      detail:
-        "The selected Gemini model isn’t available for this key. Try again shortly, or update GEMINI_MODEL in your environment.",
+      detail: message.trim()
+        ? message.trim()
+        : `${providerLabel} didn’t finish in time — often high demand or a large snippet. Wait a moment, try a shorter piece of code, then retry.`,
     }
   }
 
   if (lower.includes("api key") || lower.includes("401") || lower.includes("403")) {
     return {
       title: "API key issue",
-      detail:
-        "We couldn’t authenticate with Gemini. Check that GEMINI_API_KEY is set correctly in your environment, then retry.",
+      detail: message.trim()
+        ? message.trim()
+        : `We couldn’t authenticate with ${providerLabel}. Check the API key in .env, then retry.`,
     }
   }
 

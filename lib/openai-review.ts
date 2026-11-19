@@ -66,6 +66,20 @@ export async function runOpenAiReview(
 
   if (!response.ok) {
     const detail = await response.text().catch(() => "")
+    const lower = detail.toLowerCase()
+    if (
+      response.status === 429 &&
+      (lower.includes("insufficient_quota") || lower.includes("no credits"))
+    ) {
+      throw new Error(
+        "OpenAI has no credits left. Add billing credits at platform.openai.com/settings/organization/billing, or switch the review model to Gemini."
+      )
+    }
+    if (response.status === 401) {
+      throw new Error(
+        "OpenAI rejected the API key. Check OPENAI_API_KEY in .env, then restart the dev server."
+      )
+    }
     throw new Error(
       `OpenAI request failed (${response.status})${detail ? `: ${detail.slice(0, 240)}` : ""}`
     )

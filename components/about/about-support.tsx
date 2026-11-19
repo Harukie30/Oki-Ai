@@ -21,7 +21,7 @@ export function AboutSupport() {
           Want to help or support Oki-Ai?
         </h2>
         <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-teal-950/65 sm:text-base">
-          Share the project, leave a star, say hi — or send an optional tip via
+          Share the project, leave a star, say hi  or send an optional tip via
           QR, GCash, or Maya Bank.
         </p>
 

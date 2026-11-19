@@ -10,8 +10,10 @@ interface ReviewActionsProps {
   disabled?: boolean
   hasResult?: boolean
   stale?: boolean
-  source?: "gemini" | "openai" | "mock"
+  source?: "auto" | "gemini" | "groq" | "openai" | "mock"
+  selectedProvider?: "auto" | "gemini" | "groq"
   onReview: () => void
+  className?: string
 }
 
 export function ReviewActions({
@@ -20,22 +22,44 @@ export function ReviewActions({
   hasResult = false,
   stale = false,
   source,
+  selectedProvider = "auto",
   onReview,
+  className,
 }: ReviewActionsProps) {
+  const activeLabel =
+    source === "auto"
+      ? "Auto (Groq + Gemini)"
+      : source === "groq"
+        ? "Groq"
+        : source === "openai"
+          ? "OpenAI"
+          : source === "gemini"
+            ? "Gemini"
+            : source === "mock"
+              ? "Mock"
+              : selectedProvider === "auto"
+                ? "Auto (Groq + Gemini)"
+                : selectedProvider === "groq"
+                  ? "Groq"
+                  : "Gemini"
+
   const hint = analyzing
-    ? "Scanning for bugs, security risks, and style issues…"
+    ? `Scanning with ${activeLabel} for bugs, security risks, and style issues…`
     : stale
       ? "Code changed since the last review — re-run for a fresh score and findings."
       : hasResult
-        ? "Changed the code? Run review again to refresh score and findings."
-        : source === "openai"
-          ? "Powered by OpenAI — findings and SuggestedCode are from your snippet."
-          : source === "mock"
-            ? "Mock mode — Gemini didn’t run this time. Check GEMINI_API_KEY in .env."
-            : "Powered by Gemini — findings and SuggestedCode come from your snippet."
+        ? `Last review used ${activeLabel}. Change the model or code, then re-review.`
+        : source === "mock"
+          ? "Mock mode — no AI key ran this time. Check your .env keys."
+          : `Ready to review with ${activeLabel}.`
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div
+      className={cn(
+        "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
+        className
+      )}
+    >
       <p
         className={cn(
           "order-2 text-sm sm:order-1",
