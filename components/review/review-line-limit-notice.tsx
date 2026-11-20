@@ -63,12 +63,12 @@ export function ReviewLineLimitNotice({
             id="line-limit-notice-detail"
             className="mt-2 text-sm leading-relaxed text-white/60"
           >
-            Paste a focused snippet — up to{" "}
+            Paste a focused snippet or file up to{" "}
             <span className="font-medium text-teal-100/90">
               {REVIEW_MAX_LINES} lines
             </span>
             . Anything longer gets trimmed so the review stays fast and clear.
-            Split bigger files into smaller pieces.
+            Split big files into smaller snippets.
           </p>
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
@@ -76,7 +76,7 @@ export function ReviewLineLimitNotice({
               className="w-full bg-teal-500 text-teal-950 hover:bg-teal-400 sm:w-auto"
               onClick={onDismiss}
             >
-              Got it — open editor
+              Got it, open editor
             </Button>
           </div>
         </div>
