@@ -5,6 +5,7 @@ import { ArrowRight01Icon } from "@hugeicons/core-free-icons"
 import {
   CODE_LANGUAGES,
   LANGUAGE_GROUPS,
+  REVIEW_MAX_LINES,
   type CodeLanguage,
   type LanguageGroup,
 } from "@/lib/review-types"
@@ -46,7 +47,7 @@ export function LanguagePicker({ onSelect }: LanguagePickerProps) {
           </h2>
           <p className="mt-2 max-w-lg text-sm leading-relaxed text-white/55">
             Pick the language first so Oki-Ai can review with the right patterns.
-            Then paste your snippet.
+            Then paste a focused snippet (up to {REVIEW_MAX_LINES} lines).
           </p>
         </div>
 

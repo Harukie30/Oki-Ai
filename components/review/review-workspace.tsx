@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { useState, type ReactNode } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { CodeDiffPanel } from "@/components/review/code-diff-panel"
 import { CodeInput } from "@/components/review/code-input"
 import { LanguagePicker } from "@/components/review/language-picker"
@@ -9,17 +9,24 @@ import { ProviderToggle } from "@/components/review/provider-toggle"
 import { ReviewActions } from "@/components/review/review-actions"
 import { ReviewAnalytics } from "@/components/review/review-analytics"
 import { ReviewErrorModal } from "@/components/review/review-error-modal"
+import { ReviewLineLimitModal } from "@/components/review/review-line-limit-modal"
+import { ReviewLineLimitNotice } from "@/components/review/review-line-limit-notice"
+import { ReviewSaveReminderModal } from "@/components/review/review-save-reminder-modal"
 import {
   FindingsCard,
   ReviewSummaryCard,
 } from "@/components/review/review-results"
 import { SuggestedFixIde } from "@/components/review/suggested-fix-ide"
+import { getReviewExample } from "@/lib/review-examples"
 import { runReview, type ReviewResponse } from "@/lib/run-review"
-import type {
-  CodeLanguage,
-  ReviewFinding,
-  ReviewProvider,
-  ReviewStatus,
+import {
+  REVIEW_MAX_LINES,
+  clampCodeToMaxLines,
+  countCodeLines,
+  type CodeLanguage,
+  type ReviewFinding,
+  type ReviewProvider,
+  type ReviewStatus,
 } from "@/lib/review-types"
 import { cn } from "@/lib/utils"
 import { HugeiconsIcon } from "@hugeicons/react"
@@ -202,21 +209,67 @@ export function ReviewWorkspace() {
   const [highlightLine, setHighlightLine] = useState<number | null>(null)
   const [baselineCode, setBaselineCode] = useState("")
   const [reviewedCode, setReviewedCode] = useState("")
+  const [lineLimitAcknowledged, setLineLimitAcknowledged] = useState(false)
+  const [lineLimitWarning, setLineLimitWarning] = useState<{
+    open: boolean
+    attemptedLines: number
+  }>({ open: false, attemptedLines: 0 })
+  const [saveReminderOpen, setSaveReminderOpen] = useState(false)
+  const [codePreserved, setCodePreserved] = useState(false)
 
   const analyzing = status === "analyzing"
-  const readyToReview = Boolean(language && code.trim())
+  const codeLineCount = countCodeLines(code)
+  const overLineLimit = codeLineCount > REVIEW_MAX_LINES
+  const readyToReview = Boolean(
+    language && code.trim() && !overLineLimit && codeLineCount <= REVIEW_MAX_LINES
+  )
   const hasResult = Boolean(result)
   const resultsStale =
     hasResult && !analyzing && status === "ready" && code !== reviewedCode
   const showCompare = hasResult && Boolean(result?.revisedCode)
   const showResults = hasResult
+  const warnOnLeave = hasResult && !codePreserved
+
+  useEffect(() => {
+    if (!warnOnLeave) return
+
+    function onBeforeUnload(event: BeforeUnloadEvent) {
+      event.preventDefault()
+      event.returnValue = ""
+    }
+
+    window.addEventListener("beforeunload", onBeforeUnload)
+    return () => window.removeEventListener("beforeunload", onBeforeUnload)
+  }, [warnOnLeave])
 
   function markCodeChanged(nextCode: string) {
+    const attemptedLines = countCodeLines(nextCode)
+    if (attemptedLines > REVIEW_MAX_LINES) {
+      setLineLimitWarning({ open: true, attemptedLines })
+      setCode(clampCodeToMaxLines(nextCode, REVIEW_MAX_LINES))
+      return
+    }
     setCode(nextCode)
+  }
+
+  function handleLineLimitExceeded(info: {
+    attemptedLines: number
+    keptLines: number
+  }) {
+    setLineLimitWarning({
+      open: true,
+      attemptedLines: info.attemptedLines,
+    })
   }
 
   async function handleReview() {
     if (!language || !code.trim()) return
+    if (countCodeLines(code) > REVIEW_MAX_LINES) {
+      setError(
+        `Code is limited to ${REVIEW_MAX_LINES} lines per review. Shorten the snippet and try again.`
+      )
+      return
+    }
 
     setStatus("analyzing")
     setError(null)
@@ -233,6 +286,8 @@ export function ReviewWorkspace() {
       setReviewedCode(code)
       setStatus("ready")
       setCompareMode("editors")
+      setCodePreserved(false)
+      setSaveReminderOpen(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Review failed")
       setStatus(result ? "ready" : "idle")
@@ -248,12 +303,22 @@ export function ReviewWorkspace() {
     setActiveFindingId(null)
     setHighlightLine(null)
     setReviewedCode("")
+    setLineLimitAcknowledged(false)
+    setCodePreserved(false)
   }
 
   function handleChangeLanguageStep() {
     setStep("language")
     setStatus("idle")
     setError(null)
+    setLineLimitAcknowledged(false)
+  }
+
+  function handleLoadExample() {
+    if (!language) return
+    markCodeChanged(getReviewExample(language))
+    setActiveFindingId(null)
+    setHighlightLine(null)
   }
 
   function handleApplySuggestedCode() {
@@ -303,6 +368,19 @@ export function ReviewWorkspace() {
           setError(null)
           void handleReview()
         }}
+      />
+
+      <ReviewLineLimitModal
+        open={lineLimitWarning.open}
+        attemptedLines={lineLimitWarning.attemptedLines}
+        onClose={() =>
+          setLineLimitWarning((current) => ({ ...current, open: false }))
+        }
+      />
+
+      <ReviewSaveReminderModal
+        open={saveReminderOpen}
+        onClose={() => setSaveReminderOpen(false)}
       />
 
       <section id="review-compare" className="relative min-w-0 scroll-mt-24">
@@ -367,13 +445,16 @@ export function ReviewWorkspace() {
                   showCompare && "xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]"
                 )}
               >
-                <Panel>
+                <Panel className="relative">
                   <CodeInput
                     code={code}
                     language={language}
-                    disabled={analyzing}
+                    disabled={analyzing || !lineLimitAcknowledged}
                     highlightLine={highlightLine}
                     onCodeChange={markCodeChanged}
+                    onLineLimitExceeded={handleLineLimitExceeded}
+                    onLoadExample={handleLoadExample}
+                    onPreserved={() => setCodePreserved(true)}
                     onLanguageChange={(next) => {
                       setLanguage(next)
                       setResult(null)
@@ -381,8 +462,13 @@ export function ReviewWorkspace() {
                       setActiveFindingId(null)
                       setHighlightLine(null)
                       setReviewedCode("")
+                      setCodePreserved(false)
                     }}
                     onChangeLanguageStep={handleChangeLanguageStep}
+                  />
+                  <ReviewLineLimitNotice
+                    open={!lineLimitAcknowledged && !analyzing}
+                    onDismiss={() => setLineLimitAcknowledged(true)}
                   />
                 </Panel>
 
@@ -405,6 +491,7 @@ export function ReviewWorkspace() {
                         code={result.revisedCode}
                         language={result.language}
                         onApply={handleApplySuggestedCode}
+                        onPreserved={() => setCodePreserved(true)}
                       />
                     </Panel>
                   </>
@@ -439,7 +526,9 @@ export function ReviewWorkspace() {
                       ? "Auto"
                       : provider === "groq"
                         ? "Groq"
-                        : "Gemini"}
+                        : provider === "openrouter"
+                          ? "OpenRouter"
+                          : "Gemini"}
                   </span>
                   <HugeiconsIcon
                     icon={optionsOpen ? ArrowUp01Icon : ArrowDown01Icon}
@@ -470,7 +559,7 @@ export function ReviewWorkspace() {
                       value={provider}
                       disabled={analyzing}
                       onChange={setProvider}
-                      className="w-full max-w-sm"
+                      className="w-full max-w-xl"
                     />
                   </div>
                 </div>

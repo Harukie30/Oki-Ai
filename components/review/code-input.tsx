@@ -12,9 +12,15 @@ import {
 import {
   CODE_LANGUAGES,
   LANGUAGE_EXTENSIONS,
+  REVIEW_MAX_LINES,
+  clampCodeToMaxLines,
+  countCodeLines,
   type CodeLanguage,
 } from "@/lib/review-types"
+import { downloadTextFile } from "@/lib/download-code"
 import { cn } from "@/lib/utils"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Download01Icon, Tick02Icon } from "@hugeicons/core-free-icons"
 
 interface CodeInputProps {
   code: string
@@ -24,6 +30,13 @@ interface CodeInputProps {
   onCodeChange: (code: string) => void
   onLanguageChange: (language: CodeLanguage) => void
   onChangeLanguageStep?: () => void
+  /** Fired when pasted/typed content exceeds the max and gets trimmed. */
+  onLineLimitExceeded?: (info: {
+    attemptedLines: number
+    keptLines: number
+  }) => void
+  onLoadExample?: () => void
+  onPreserved?: () => void
 }
 
 function extensionFor(language: CodeLanguage) {
@@ -38,18 +51,46 @@ export function CodeInput({
   onCodeChange,
   onLanguageChange,
   onChangeLanguageStep,
+  onLineLimitExceeded,
+  onLoadExample,
+  onPreserved,
 }: CodeInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const gutterRef = useRef<HTMLDivElement>(null)
   const [lineMetrics, setLineMetrics] = useState({ lineHeight: 20, paddingTop: 12 })
   const [scrollTop, setScrollTop] = useState(0)
+  const [downloaded, setDownloaded] = useState(false)
   const languageLabel =
     CODE_LANGUAGES.find((lang) => lang.value === language)?.label ?? "Language"
+  const filename = `snippet.${extensionFor(language)}`
 
   const lineCount = useMemo(
-    () => Math.max(1, code.split("\n").length),
+    () => Math.max(1, countCodeLines(code) || 1),
     [code]
   )
+  const atLineLimit = lineCount >= REVIEW_MAX_LINES
+  const nearLineLimit = lineCount >= Math.floor(REVIEW_MAX_LINES * 0.85)
+
+  function handleCodeChange(next: string) {
+    const attemptedLines = countCodeLines(next)
+    if (attemptedLines > REVIEW_MAX_LINES) {
+      onLineLimitExceeded?.({
+        attemptedLines,
+        keptLines: REVIEW_MAX_LINES,
+      })
+      onCodeChange(clampCodeToMaxLines(next, REVIEW_MAX_LINES))
+      return
+    }
+    onCodeChange(next)
+  }
+
+  function handleDownload() {
+    if (!code.trim()) return
+    downloadTextFile(filename, code)
+    setDownloaded(true)
+    onPreserved?.()
+    window.setTimeout(() => setDownloaded(false), 1600)
+  }
 
   useEffect(() => {
     const el = textareaRef.current
@@ -112,6 +153,34 @@ export function CodeInput({
           </span>
         </div>
         <div className="flex min-w-0 items-center gap-2">
+          {onLoadExample ? (
+            <button
+              type="button"
+              onClick={onLoadExample}
+              disabled={disabled}
+              className="rounded-full border border-teal-400/25 bg-teal-400/10 px-2.5 py-1 text-[11px] font-medium text-teal-100 transition-colors hover:bg-teal-400/20 disabled:opacity-50"
+            >
+              Try example
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={handleDownload}
+            disabled={disabled || !code.trim()}
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors disabled:opacity-50",
+              downloaded
+                ? "border-teal-400/40 bg-teal-400/15 text-teal-100"
+                : "border-white/10 bg-white/5 text-teal-100/80 hover:border-teal-400/30 hover:bg-teal-400/10"
+            )}
+          >
+            <HugeiconsIcon
+              icon={downloaded ? Tick02Icon : Download01Icon}
+              strokeWidth={1.75}
+              className="size-3.5"
+            />
+            {downloaded ? "Saved" : "Download"}
+          </button>
           {onChangeLanguageStep ? (
             <button
               type="button"
@@ -146,11 +215,25 @@ export function CodeInput({
         </div>
       </div>
 
-      <div className="border-b border-white/5 px-3 py-2 sm:px-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 px-3 py-2 sm:px-4">
         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-teal-300/60">
           {highlightLine
             ? `Focus · line ${highlightLine}`
             : `Your code · ${languageLabel}`}
+        </p>
+        <p
+          className={cn(
+            "font-mono text-[10px] tabular-nums tracking-wide",
+            atLineLimit
+              ? "font-semibold text-amber-300"
+              : nearLineLimit
+                ? "text-amber-200/80"
+                : "text-white/35"
+          )}
+          aria-live="polite"
+        >
+          {lineCount} / {REVIEW_MAX_LINES} lines
+          {atLineLimit ? " · max" : ""}
         </p>
       </div>
 
@@ -194,11 +277,11 @@ export function CodeInput({
           <Textarea
             ref={textareaRef}
             value={code}
-            onChange={(event) => onCodeChange(event.target.value)}
+            onChange={(event) => handleCodeChange(event.target.value)}
             onScroll={syncGutterScroll}
             disabled={disabled}
             spellCheck={false}
-            placeholder={`Paste your ${languageLabel} code here…`}
+            placeholder={`Paste your ${languageLabel} code here… (max ${REVIEW_MAX_LINES} lines)`}
             className={cn(
               "ide-scroll relative z-[1] min-h-[220px] rounded-none border-0 bg-transparent px-3 py-3 font-mono text-[12px] leading-5 text-teal-50/90 sm:min-h-[280px] sm:px-4 sm:py-4 sm:text-[13px] sm:leading-6 md:min-h-[360px]",
               "placeholder:text-white/30 focus-visible:border-transparent focus-visible:ring-0"
@@ -210,6 +293,15 @@ export function CodeInput({
           />
         </div>
       </div>
+
+      {atLineLimit ? (
+        <div className="border-t border-amber-300/15 bg-amber-300/8 px-3 py-2 sm:px-4">
+          <p className="text-[11px] leading-relaxed text-amber-100/85">
+            Line limit reached ({REVIEW_MAX_LINES}). Trim the snippet or review
+            a smaller piece — extra pasted lines are dropped.
+          </p>
+        </div>
+      ) : null}
     </div>
   )
 }

@@ -4,8 +4,11 @@ import { runGeminiReview } from "@/lib/gemini-review"
 import { runGroqReview } from "@/lib/groq-review"
 import { runMockReview } from "@/lib/mock-review"
 import { runOpenAiReview } from "@/lib/openai-review"
+import { runOpenRouterReview } from "@/lib/openrouter-review"
 import {
   CODE_LANGUAGES,
+  REVIEW_MAX_LINES,
+  countCodeLines,
   type CodeLanguage,
   type ReviewProvider,
   type ReviewRequest,
@@ -15,7 +18,12 @@ const LANGUAGES = new Set<CodeLanguage>(
   CODE_LANGUAGES.map((language) => language.value)
 )
 
-const PROVIDERS = new Set<ReviewProvider>(["auto", "gemini", "groq"])
+const PROVIDERS = new Set<ReviewProvider>([
+  "auto",
+  "gemini",
+  "groq",
+  "openrouter",
+])
 
 function resolveProvider(
   requested: unknown
@@ -32,15 +40,22 @@ function resolveProvider(
     fromEnv === "auto" ||
     fromEnv === "gemini" ||
     fromEnv === "groq" ||
+    fromEnv === "openrouter" ||
     fromEnv === "openai" ||
     fromEnv === "mock"
   ) {
     return fromEnv
   }
 
-  if (process.env.GEMINI_API_KEY && process.env.GROQ_API_KEY) return "auto"
+  const keyCount = [
+    process.env.GEMINI_API_KEY,
+    process.env.GROQ_API_KEY,
+    process.env.OPENROUTER_API_KEY,
+  ].filter(Boolean).length
+  if (keyCount >= 2) return "auto"
   if (process.env.GEMINI_API_KEY) return "gemini"
   if (process.env.GROQ_API_KEY) return "groq"
+  if (process.env.OPENROUTER_API_KEY) return "openrouter"
   if (process.env.OPENAI_API_KEY) return "openai"
   return "mock"
 }
@@ -60,6 +75,15 @@ export async function POST(request: Request) {
 
   if (!code.trim()) {
     return NextResponse.json({ error: "Code is required" }, { status: 400 })
+  }
+
+  if (countCodeLines(code) > REVIEW_MAX_LINES) {
+    return NextResponse.json(
+      {
+        error: `Code is limited to ${REVIEW_MAX_LINES} lines per review. Shorten the snippet and try again.`,
+      },
+      { status: 400 }
+    )
   }
 
   if (typeof language !== "string" || !LANGUAGES.has(language as CodeLanguage)) {
@@ -101,6 +125,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ ...result, source: "groq" })
     }
 
+    if (prefer === "openrouter") {
+      if (!process.env.OPENROUTER_API_KEY) {
+        return NextResponse.json(
+          { error: "OPENROUTER_API_KEY is not configured" },
+          { status: 500 }
+        )
+      }
+      const result = await runOpenRouterReview(payload)
+      return NextResponse.json({ ...result, source: "openrouter" })
+    }
+
     if (prefer === "openai") {
       if (!process.env.OPENAI_API_KEY) {
         return NextResponse.json(
@@ -117,7 +152,7 @@ export async function POST(request: Request) {
       ...result,
       source: "mock",
       notice:
-        "No AI key found — using mock review. Add GEMINI_API_KEY or GROQ_API_KEY to .env.",
+        "No AI key found — using mock review. Add GEMINI_API_KEY, GROQ_API_KEY, or OPENROUTER_API_KEY to .env.",
     })
   } catch (error) {
     const message =

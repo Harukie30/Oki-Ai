@@ -3,15 +3,38 @@
 import { Button } from "@/components/ui/button"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { FlashIcon, Loading03Icon, RefreshIcon } from "@hugeicons/core-free-icons"
+import type { ReviewProvider } from "@/lib/review-types"
+import type { ReviewSource } from "@/lib/run-review"
 import { cn } from "@/lib/utils"
+
+function providerLabel(
+  value: ReviewSource | ReviewProvider | undefined
+): string {
+  switch (value) {
+    case "auto":
+      return "Auto (Gemini + Groq + OpenRouter)"
+    case "groq":
+      return "Groq"
+    case "gemini":
+      return "Gemini"
+    case "openrouter":
+      return "OpenRouter"
+    case "openai":
+      return "OpenAI"
+    case "mock":
+      return "Mock"
+    default:
+      return "Auto (Gemini + Groq + OpenRouter)"
+  }
+}
 
 interface ReviewActionsProps {
   analyzing: boolean
   disabled?: boolean
   hasResult?: boolean
   stale?: boolean
-  source?: "auto" | "gemini" | "groq" | "openai" | "mock"
-  selectedProvider?: "auto" | "gemini" | "groq"
+  source?: ReviewSource
+  selectedProvider?: ReviewProvider
   onReview: () => void
   className?: string
 }
@@ -26,22 +49,7 @@ export function ReviewActions({
   onReview,
   className,
 }: ReviewActionsProps) {
-  const activeLabel =
-    source === "auto"
-      ? "Auto (Groq + Gemini)"
-      : source === "groq"
-        ? "Groq"
-        : source === "openai"
-          ? "OpenAI"
-          : source === "gemini"
-            ? "Gemini"
-            : source === "mock"
-              ? "Mock"
-              : selectedProvider === "auto"
-                ? "Auto (Groq + Gemini)"
-                : selectedProvider === "groq"
-                  ? "Groq"
-                  : "Gemini"
+  const activeLabel = providerLabel(source ?? selectedProvider)
 
   const hint = analyzing
     ? `Scanning with ${activeLabel} for bugs, security risks, and style issues…`

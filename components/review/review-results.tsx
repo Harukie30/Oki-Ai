@@ -22,6 +22,7 @@ const SOURCE_LABELS: Record<ReviewSource, string> = {
   auto: "Auto",
   gemini: "Gemini",
   groq: "Groq",
+  openrouter: "OpenRouter",
   openai: "OpenAI",
   mock: "Demo",
 }

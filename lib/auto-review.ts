@@ -1,11 +1,20 @@
 import { runGeminiReview } from "@/lib/gemini-review"
 import { runGroqReview } from "@/lib/groq-review"
+import { runOpenRouterReview } from "@/lib/openrouter-review"
 import type {
   FindingSeverity,
   ReviewFinding,
   ReviewRequest,
   ReviewResult,
 } from "@/lib/review-types"
+
+export type AutoContributor = "groq" | "gemini" | "openrouter"
+
+const CONTRIBUTOR_LABEL: Record<AutoContributor, string> = {
+  groq: "Groq",
+  gemini: "Gemini",
+  openrouter: "OpenRouter",
+}
 
 const SEVERITY_RANK: Record<FindingSeverity, number> = {
   critical: 4,
@@ -18,13 +27,10 @@ function findingKey(finding: ReviewFinding): string {
   return `${finding.line}|${finding.category}|${finding.title.toLowerCase()}`
 }
 
-function mergeFindings(
-  first: ReviewFinding[],
-  second: ReviewFinding[]
-): ReviewFinding[] {
+function mergeFindings(groups: ReviewFinding[][]): ReviewFinding[] {
   const map = new Map<string, ReviewFinding>()
 
-  for (const finding of [...first, ...second]) {
+  for (const finding of groups.flat()) {
     const key = findingKey(finding)
     const existing = map.get(key)
     if (!existing) {
@@ -46,7 +52,8 @@ function mergeFindings(
           : keep === existing
             ? finding.suggestion
             : existing.suggestion,
-      suggestedCode: keep.suggestedCode || existing.suggestedCode || finding.suggestedCode,
+      suggestedCode:
+        keep.suggestedCode || existing.suggestedCode || finding.suggestedCode,
     })
   }
 
@@ -55,50 +62,56 @@ function mergeFindings(
       (a, b) =>
         SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity] || a.line - b.line
     )
-    .slice(0, 10)
+    .slice(0, 12)
     .map((finding, index) => ({
       ...finding,
       id: finding.id || `auto-${index + 1}`,
     }))
 }
 
-function pickRevisedCode(a: string, b: string, original: string): string {
-  const left = a.trim()
-  const right = b.trim()
-  if (left && !right) return left
-  if (right && !left) return right
-  if (!left && !right) return original
-  // Prefer a real rewrite that still looks like the same language/snippet size.
-  const leftDelta = Math.abs(left.length - original.length)
-  const rightDelta = Math.abs(right.length - original.length)
-  if (left === original && right !== original) return right
-  if (right === original && left !== original) return left
-  return leftDelta <= rightDelta ? left : right
+function pickRevisedCode(candidates: string[], original: string): string {
+  const usable = candidates.map((c) => c.trim()).filter(Boolean)
+  if (usable.length === 0) return original
+
+  const rewrites = usable.filter((c) => c !== original.trim())
+  const pool = rewrites.length > 0 ? rewrites : usable
+
+  return pool.reduce((best, current) => {
+    const bestDelta = Math.abs(best.length - original.length)
+    const currentDelta = Math.abs(current.length - original.length)
+    return currentDelta < bestDelta ? current : best
+  })
+}
+
+function labelList(ids: AutoContributor[]): string {
+  return ids.map((id) => CONTRIBUTOR_LABEL[id]).join(" + ")
 }
 
 export interface AutoReviewResult extends ReviewResult {
   notice: string
-  contributors: Array<"groq" | "gemini">
+  contributors: AutoContributor[]
 }
 
 /**
- * Auto mode: Groq + Gemini review together, then merge.
- * If one fails, the other still returns a usable review.
+ * Auto mode: Gemini + Groq + OpenRouter (whichever keys exist) in parallel, then merge.
+ * If some fail, successful providers still return a usable review.
  */
 export async function runAutoReview(
   request: ReviewRequest
 ): Promise<AutoReviewResult> {
   const hasGroq = Boolean(process.env.GROQ_API_KEY)
   const hasGemini = Boolean(process.env.GEMINI_API_KEY)
+  const hasOpenRouter = Boolean(process.env.OPENROUTER_API_KEY)
 
-  if (!hasGroq && !hasGemini) {
+  if (!hasGroq && !hasGemini && !hasOpenRouter) {
     throw new Error(
-      "Auto mode needs GROQ_API_KEY and/or GEMINI_API_KEY configured in .env."
+      "Auto mode needs GROQ_API_KEY, GEMINI_API_KEY, and/or OPENROUTER_API_KEY configured in .env."
     )
   }
 
-  const tasks: Array<Promise<{ id: "groq" | "gemini"; result: ReviewResult }>> =
-    []
+  const tasks: Array<
+    Promise<{ id: AutoContributor; result: ReviewResult }>
+  > = []
 
   if (hasGroq) {
     tasks.push(
@@ -113,6 +126,14 @@ export async function runAutoReview(
       }))
     )
   }
+  if (hasOpenRouter) {
+    tasks.push(
+      runOpenRouterReview(request).then((result) => ({
+        id: "openrouter" as const,
+        result,
+      }))
+    )
+  }
 
   const settled = await Promise.allSettled(tasks)
   const ok = settled.flatMap((item) =>
@@ -120,59 +141,75 @@ export async function runAutoReview(
   )
   const errors = settled.flatMap((item) =>
     item.status === "rejected"
-      ? [item.reason instanceof Error ? item.reason.message : String(item.reason)]
+      ? [
+          item.reason instanceof Error
+            ? item.reason.message
+            : String(item.reason),
+        ]
       : []
   )
 
   if (ok.length === 0) {
     throw new Error(
-      errors[0] || "Auto review failed — both Gemini and Groq were unavailable."
+      errors[0] ||
+        "Auto review failed — Gemini, Groq, and OpenRouter were unavailable."
     )
   }
 
+  const contributors = ok.map((item) => item.id)
+  const configuredCount = tasks.length
+
   if (ok.length === 1) {
     const only = ok[0]
-    const otherBusy =
-      errors[0]?.toLowerCase().includes("503") ||
-      errors[0]?.toLowerCase().includes("busy") ||
-      errors[0]?.toLowerCase().includes("high demand")
+    const otherBusy = errors.some((message) => {
+      const lower = message.toLowerCase()
+      return (
+        lower.includes("503") ||
+        lower.includes("busy") ||
+        lower.includes("high demand") ||
+        lower.includes("429") ||
+        lower.includes("rate limit")
+      )
+    })
     return {
       ...only.result,
-      contributors: [only.id],
-      notice: otherBusy
-        ? `Auto used ${only.id === "groq" ? "Groq" : "Gemini"} — the other model was busy. Try Auto again in a moment.`
-        : `Auto used ${only.id === "groq" ? "Groq" : "Gemini"} only — the other model didn’t finish.`,
+      contributors,
+      notice:
+        configuredCount === 1
+          ? `Auto used ${CONTRIBUTOR_LABEL[only.id]} — only one provider key is configured.`
+          : otherBusy
+            ? `Auto used ${CONTRIBUTOR_LABEL[only.id]} — the other model(s) were busy. Try Auto again in a moment.`
+            : `Auto used ${CONTRIBUTOR_LABEL[only.id]} only — the other model(s) didn’t finish.`,
     }
   }
 
-  const [first, second] = ok
-  const mergedFindings = mergeFindings(
-    first.result.findings,
-    second.result.findings
+  const score = Math.round(
+    ok.reduce((sum, item) => sum + item.result.score, 0) / ok.length
   )
-  const score = Math.round((first.result.score + second.result.score) / 2)
   const aiLikelihood = Math.round(
-    (first.result.aiLikelihood + second.result.aiLikelihood) / 2
+    ok.reduce((sum, item) => sum + item.result.aiLikelihood, 0) / ok.length
   )
-  const summary =
-    first.result.summary.trim().length >= second.result.summary.trim().length
-      ? first.result.summary
-      : second.result.summary
+  const summary = ok
+    .map((item) => item.result.summary.trim())
+    .sort((a, b) => b.length - a.length)[0]
+
+  const partial =
+    ok.length < configuredCount
+      ? ` (${ok.length} of ${configuredCount} providers finished)`
+      : ""
 
   return {
     score,
     aiLikelihood,
     summary,
-    findings: mergedFindings,
+    findings: mergeFindings(ok.map((item) => item.result.findings)),
     revisedCode: pickRevisedCode(
-      first.result.revisedCode,
-      second.result.revisedCode,
+      ok.map((item) => item.result.revisedCode),
       request.code
     ),
     analyzedAt: new Date().toISOString(),
     language: request.language,
-    contributors: [first.id, second.id],
-    notice:
-      "Auto combined Groq + Gemini — findings were merged so both models could help catch issues.",
+    contributors,
+    notice: `Auto combined ${labelList(contributors)}${partial} — findings were merged so each model could help catch issues.`,
   }
 }

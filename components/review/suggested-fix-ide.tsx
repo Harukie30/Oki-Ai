@@ -6,12 +6,14 @@ import {
   Copy01Icon,
   Tick02Icon,
   ArrowLeft01Icon,
+  Download01Icon,
 } from "@hugeicons/core-free-icons"
 import {
   CODE_LANGUAGES,
   LANGUAGE_EXTENSIONS,
   type CodeLanguage,
 } from "@/lib/review-types"
+import { downloadTextFile } from "@/lib/download-code"
 import { cn } from "@/lib/utils"
 
 interface SuggestedFixIdeProps {
@@ -19,6 +21,8 @@ interface SuggestedFixIdeProps {
   language: CodeLanguage
   className?: string
   onApply?: () => void
+  /** Called after copy or download so the parent can clear leave warnings. */
+  onPreserved?: () => void
 }
 
 export function SuggestedFixIde({
@@ -26,12 +30,15 @@ export function SuggestedFixIde({
   language,
   className,
   onApply,
+  onPreserved,
 }: SuggestedFixIdeProps) {
   const [copied, setCopied] = useState(false)
   const [applied, setApplied] = useState(false)
+  const [downloaded, setDownloaded] = useState(false)
   const languageLabel =
     CODE_LANGUAGES.find((lang) => lang.value === language)?.label ?? language
   const extension = LANGUAGE_EXTENSIONS[language]
+  const filename = `SuggestedCode.${extension}`
 
   useEffect(() => {
     if (!copied) return
@@ -40,21 +47,36 @@ export function SuggestedFixIde({
   }, [copied])
 
   useEffect(() => {
+    if (!downloaded) return
+    const timer = window.setTimeout(() => setDownloaded(false), 1600)
+    return () => window.clearTimeout(timer)
+  }, [downloaded])
+
+  useEffect(() => {
     setApplied(false)
+    setDownloaded(false)
   }, [code])
 
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(code)
       setCopied(true)
+      onPreserved?.()
     } catch {
       setCopied(false)
     }
   }
 
+  function handleDownload() {
+    downloadTextFile(filename, code)
+    setDownloaded(true)
+    onPreserved?.()
+  }
+
   function handleApply() {
     onApply?.()
     setApplied(true)
+    onPreserved?.()
     window.setTimeout(() => setApplied(false), 1600)
   }
 
@@ -119,12 +141,29 @@ export function SuggestedFixIde({
             />
             {copied ? "Copied" : "Copy"}
           </button>
+          <button
+            type="button"
+            onClick={handleDownload}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-medium transition-[background-color,border-color,color] duration-200",
+              downloaded
+                ? "border-teal-400/40 bg-teal-400/15 text-teal-100"
+                : "border-white/10 bg-white/5 text-teal-100/80 hover:border-teal-400/30 hover:bg-teal-400/10 hover:text-teal-50"
+            )}
+          >
+            <HugeiconsIcon
+              icon={downloaded ? Tick02Icon : Download01Icon}
+              strokeWidth={1.75}
+              className="size-3.5"
+            />
+            {downloaded ? "Saved" : "Download"}
+          </button>
         </div>
       </div>
 
       <div className="border-b border-white/5 px-3 py-2 sm:px-4">
         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-teal-300/60">
-          SuggestedCode · study, copy, or apply
+          SuggestedCode · study, copy, download, or apply
         </p>
       </div>
 

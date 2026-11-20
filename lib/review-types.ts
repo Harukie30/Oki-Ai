@@ -19,7 +19,27 @@ export type FindingSeverity = "critical" | "warning" | "info" | "suggestion"
 
 export type FindingCategory = "bug" | "security" | "style" | "performance"
 
-export type ReviewProvider = "auto" | "gemini" | "groq"
+export type ReviewProvider = "auto" | "gemini" | "groq" | "openrouter"
+
+/** Max lines accepted per review prompt (IDE + API). */
+export const REVIEW_MAX_LINES = 200
+
+export function countCodeLines(code: string): number {
+  if (!code) return 0
+  return code.replace(/\r\n/g, "\n").split("\n").length
+}
+
+/** Keeps at most `maxLines` lines; drops the rest. */
+export function clampCodeToMaxLines(
+  code: string,
+  maxLines: number = REVIEW_MAX_LINES
+): string {
+  if (maxLines < 1) return ""
+  const normalized = code.replace(/\r\n/g, "\n")
+  const lines = normalized.split("\n")
+  if (lines.length <= maxLines) return code
+  return lines.slice(0, maxLines).join("\n")
+}
 
 export interface ReviewRequest {
   code: string

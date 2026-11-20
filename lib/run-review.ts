@@ -1,6 +1,12 @@
 import type { ReviewRequest, ReviewResult } from "@/lib/review-types"
 
-export type ReviewSource = "auto" | "gemini" | "groq" | "openai" | "mock"
+export type ReviewSource =
+  | "auto"
+  | "gemini"
+  | "groq"
+  | "openrouter"
+  | "openai"
+  | "mock"
 
 export interface ReviewResponse extends ReviewResult {
   source?: ReviewSource

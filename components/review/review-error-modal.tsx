@@ -10,6 +10,7 @@ function getErrorCopy(message: string): { title: string; detail: string } {
   const mentionsGroq = lower.includes("groq")
   const mentionsGemini = lower.includes("gemini")
   const mentionsOpenAi = lower.includes("openai")
+  const mentionsOpenRouter = lower.includes("openrouter")
   const isAuto =
     lower.includes("auto") ||
     (mentionsGroq && mentionsGemini) ||
@@ -18,13 +19,15 @@ function getErrorCopy(message: string): { title: string; detail: string } {
 
   const providerLabel = isAuto
     ? "Auto"
-    : mentionsGroq
-      ? "Groq"
-      : mentionsOpenAi
-        ? "OpenAI"
-        : mentionsGemini
-          ? "Gemini"
-          : "the AI"
+    : mentionsOpenRouter
+      ? "OpenRouter"
+      : mentionsGroq
+        ? "Groq"
+        : mentionsOpenAi
+          ? "OpenAI"
+          : mentionsGemini
+            ? "Gemini"
+            : "the AI"
 
   if (lower.includes("no credits") || lower.includes("insufficient_quota")) {
     return {
@@ -63,7 +66,7 @@ function getErrorCopy(message: string): { title: string; detail: string } {
       detail: message.trim()
         ? message.trim()
         : isAuto
-          ? "Gemini and/or Groq didn’t finish in time — often high demand or a large snippet. Wait a moment, try a shorter piece of code, then retry."
+          ? "One or more Auto providers didn’t finish in time — often high demand or a large snippet. Wait a moment, try a shorter piece of code, then retry."
           : `${providerLabel} didn’t finish in time — often high demand or a large snippet. Wait a moment, try a shorter piece of code, then retry.`,
     }
   }
@@ -74,7 +77,7 @@ function getErrorCopy(message: string): { title: string; detail: string } {
       detail: message.trim()
         ? message.trim()
         : isAuto
-          ? "We couldn’t authenticate with Gemini and/or Groq. Confirm both keys on Vercel (or in .env locally), redeploy if needed, then retry."
+          ? "We couldn’t authenticate with Gemini, Groq, and/or OpenRouter. Confirm the keys on Vercel (or in .env locally), redeploy if needed, then retry."
           : `We couldn’t authenticate with ${providerLabel}. Check the API key in .env, then retry.`,
     }
   }
@@ -92,7 +95,7 @@ function getErrorCopy(message: string): { title: string; detail: string } {
     detail:
       message.trim() ||
       (isAuto
-        ? "Something went wrong while merging Gemini and Groq. Please try again in a moment."
+        ? "Something went wrong while merging Gemini, Groq, and OpenRouter. Please try again in a moment."
         : "Something went wrong while analyzing your code. Please try again in a moment."),
   }
 }

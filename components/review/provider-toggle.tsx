@@ -5,6 +5,7 @@ import {
   FlashIcon,
   SparklesIcon,
   Robot01Icon,
+  Globe02Icon,
 } from "@hugeicons/core-free-icons"
 import type { ReviewProvider } from "@/lib/review-types"
 import { cn } from "@/lib/utils"
@@ -18,7 +19,7 @@ const PROVIDERS: {
   {
     id: "auto",
     label: "Auto",
-    detail: "Both together",
+    detail: "All together",
     icon: Robot01Icon,
   },
   {
@@ -32,6 +33,12 @@ const PROVIDERS: {
     label: "Groq",
     detail: "Groq cloud",
     icon: FlashIcon,
+  },
+  {
+    id: "openrouter",
+    label: "OpenRouter",
+    detail: "OpenRouter.ai",
+    icon: Globe02Icon,
   },
 ]
 
@@ -53,7 +60,7 @@ export function ProviderToggle({
       role="radiogroup"
       aria-label="Review model"
       className={cn(
-        "inline-grid grid-cols-3 gap-0.5 rounded-full border border-teal-900/10 bg-white/80 p-1 shadow-sm backdrop-blur-sm",
+        "inline-grid grid-cols-2 gap-0.5 rounded-2xl border border-teal-900/10 bg-white/80 p-1 shadow-sm backdrop-blur-sm sm:grid-cols-4 sm:rounded-full",
         className
       )}
     >
