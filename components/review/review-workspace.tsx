@@ -7,6 +7,7 @@ import { CodeInput } from "@/components/review/code-input"
 import { LanguagePicker } from "@/components/review/language-picker"
 import { ProviderToggle } from "@/components/review/provider-toggle"
 import { ReviewActions } from "@/components/review/review-actions"
+import { ReviewAnalytics } from "@/components/review/review-analytics"
 import { ReviewErrorModal } from "@/components/review/review-error-modal"
 import {
   FindingsCard,
@@ -67,33 +68,122 @@ function Panel({
   return <div className={cn("min-w-0", className)}>{children}</div>
 }
 
-function AnalyzingBanner({ compact = false }: { compact?: boolean }) {
+function AnalyzingBanner() {
   return (
-    <div
-      className={cn(
-        "flex items-center gap-3 rounded-2xl border border-teal-700/15 bg-white/90 shadow-sm backdrop-blur-sm",
-        compact ? "px-4 py-2" : "w-full max-w-md flex-col px-5 py-4 sm:flex-row"
-      )}
-    >
+    <div className="flex items-center gap-3 rounded-2xl border border-teal-700/15 bg-white/90 px-4 py-2 shadow-sm backdrop-blur-sm">
       <span className="relative flex size-2.5 shrink-0">
         <span className="absolute inline-flex size-full animate-ping rounded-full bg-teal-400/70 opacity-75" />
         <span className="relative inline-flex size-2.5 rounded-full bg-teal-500" />
       </span>
-      <div className={cn("min-w-0", !compact && "text-center sm:text-left")}>
-        <p className="text-xs font-semibold text-teal-950">
-          {compact ? "Review running — editors locked" : "Running review…"}
-        </p>
-        {!compact ? (
-          <p className="mt-0.5 text-[11px] text-teal-900/55">
-            Scoring quality, flagging risks, drafting SuggestedCode
-          </p>
-        ) : null}
-      </div>
-      {!compact ? (
-        <div className="h-1 w-28 overflow-hidden rounded-full bg-teal-100 sm:ml-auto">
-          <div className="h-full w-1/2 animate-[scan_1.2s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-teal-300 via-teal-500 to-cyan-400" />
+      <p className="text-xs font-semibold text-teal-950">
+        Review running — editors locked
+      </p>
+    </div>
+  )
+}
+
+function ResultsSkeleton() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.15fr)] lg:items-start"
+    >
+      <section className="min-w-0 rounded-xl border border-border/80 bg-white/70 p-4 shadow-[0_20px_60px_-40px_rgba(15,70,80,0.45)] backdrop-blur-md sm:rounded-2xl sm:p-5">
+        <div className="grid gap-5 sm:grid-cols-[120px_1fr] sm:gap-5">
+          <div className="flex flex-col items-center justify-center gap-2">
+            <div className="relative grid size-[96px] place-items-center rounded-full bg-teal-900/5 sm:size-[108px]">
+              <div className="size-[74px] animate-pulse rounded-full bg-teal-900/[0.06] sm:size-[84px]" />
+            </div>
+            <div className="h-4 w-14 animate-pulse rounded-full bg-teal-900/8" />
+          </div>
+          <div className="min-w-0 space-y-3">
+            <div className="space-y-2">
+              <div className="h-4 w-36 animate-pulse rounded bg-teal-900/10" />
+              <div className="h-3 w-full max-w-sm animate-pulse rounded bg-teal-900/6" />
+              <div className="h-3 w-4/5 max-w-xs animate-pulse rounded bg-teal-900/5" />
+            </div>
+            <div className="h-2 w-full animate-pulse rounded-full bg-teal-900/8" />
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {[1, 2, 3, 4].map((n) => (
+                <div
+                  key={n}
+                  className="h-5 w-14 animate-pulse rounded-full bg-teal-900/6"
+                />
+              ))}
+            </div>
+            <p className="pt-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-teal-700/55">
+              scan · score · findings
+            </p>
+          </div>
         </div>
-      ) : null}
+      </section>
+
+      <section className="min-w-0 rounded-xl border border-border/80 bg-white/70 p-4 shadow-[0_20px_60px_-40px_rgba(15,70,80,0.45)] backdrop-blur-md sm:rounded-2xl sm:p-5">
+        <div className="mb-4 space-y-2">
+          <div className="h-4 w-24 animate-pulse rounded bg-teal-900/10" />
+          <div className="h-3 w-56 animate-pulse rounded bg-teal-900/6" />
+        </div>
+        <div className="mb-4 flex flex-wrap gap-2">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <div
+              key={n}
+              className="h-6 w-16 animate-pulse rounded-full bg-teal-900/6"
+            />
+          ))}
+        </div>
+        <div className="flex flex-col gap-3">
+          {[0, 1, 2].map((n) => (
+            <div
+              key={n}
+              className="rounded-xl border border-border/60 border-l-4 border-l-teal-400/35 bg-background/60 p-3 sm:p-4"
+              style={{ animationDelay: `${n * 80}ms` }}
+            >
+              <div className="mb-2 h-3.5 w-3/5 animate-pulse rounded bg-teal-900/10" />
+              <div className="mb-2 flex gap-1.5">
+                <div className="h-5 w-14 animate-pulse rounded-full bg-teal-900/8" />
+                <div className="h-5 w-12 animate-pulse rounded-full bg-teal-900/6" />
+              </div>
+              <div className="h-3 w-full animate-pulse rounded bg-teal-900/5" />
+              <div className="mt-1.5 h-3 w-4/5 animate-pulse rounded bg-teal-900/5" />
+            </div>
+          ))}
+        </div>
+        <span className="sr-only">Building your review</span>
+      </section>
+    </div>
+  )
+}
+
+function ResultsEmptyState({
+  step,
+}: {
+  step: WorkspaceStep
+}) {
+  const choosing = step === "language"
+
+  return (
+    <div className="relative flex min-h-[200px] flex-col items-start justify-center overflow-hidden rounded-xl border border-teal-700/15 bg-white/60 px-4 py-8 backdrop-blur-sm sm:min-h-[260px] sm:rounded-2xl sm:px-6 sm:py-10">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(45,212,191,0.2),transparent_55%),radial-gradient(ellipse_at_bottom_right,rgba(14,116,144,0.1),transparent_50%)]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:linear-gradient(rgba(15,80,90,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(15,80,90,0.05)_1px,transparent_1px)] [background-size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_78%)]"
+      />
+      <p className="relative text-[10px] font-semibold uppercase tracking-[0.2em] text-teal-700/55">
+        Step 2 · Understand
+      </p>
+      <p className="relative mt-3 text-sm font-medium text-teal-900/85">
+        {choosing ? "Choose a language to begin" : "Results will show up here"}
+      </p>
+      <p className="relative mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+        {choosing
+          ? "Start with the language type, then paste your snippet in the editor."
+          : "Hit Review to compare code, open a Diff, and jump from findings to lines."}
+      </p>
     </div>
   )
 }
@@ -237,7 +327,7 @@ export function ReviewWorkspace() {
             {analyzing ? (
               <div className="pointer-events-none absolute inset-0 z-10 rounded-2xl bg-[#f4fbfa]/60 backdrop-blur-[1.5px]">
                 <div className="sticky top-24 mx-auto mt-10 w-fit">
-                  <AnalyzingBanner compact />
+                  <AnalyzingBanner />
                 </div>
               </div>
             ) : null}
@@ -407,12 +497,6 @@ export function ReviewWorkspace() {
           detail="Filter by severity, jump to a line, or apply a local snippet."
         />
 
-        {analyzing ? (
-          <div className="mb-4">
-            <AnalyzingBanner />
-          </div>
-        ) : null}
-
         {resultsStale && result ? (
           <div className="mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm text-amber-950/85">
             Findings below are from the previous review. Hit{" "}
@@ -428,7 +512,7 @@ export function ReviewWorkspace() {
               analyzing && "pointer-events-none saturate-75"
             )}
           >
-            <ReviewSummaryCard result={result} />
+            <ReviewSummaryCard result={result} source={result.source} />
             <FindingsCard
               result={result}
               activeFindingId={activeFindingId}
@@ -436,45 +520,31 @@ export function ReviewWorkspace() {
               onApplyFindingCode={handleApplyFindingCode}
             />
           </div>
+        ) : analyzing ? (
+          <ResultsSkeleton />
         ) : (
-          <div className="relative flex min-h-[200px] flex-col items-start justify-center overflow-hidden rounded-xl border border-dashed border-teal-700/20 bg-white/50 px-4 py-8 backdrop-blur-sm sm:min-h-[260px] sm:rounded-2xl sm:px-6 sm:py-10">
-            {analyzing ? (
-              <>
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(45,212,191,0.18),transparent_55%)]"
-                />
-                <p className="relative text-[10px] font-semibold uppercase tracking-[0.2em] text-teal-700/60">
-                  scan · score · findings
-                </p>
-                <p className="relative mt-3 text-sm font-medium text-teal-900/85">
-                  Building your review…
-                </p>
-                <p className="relative mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                  Checking bugs, security risks, and drafting a SuggestedCode
-                  rewrite you can copy or apply.
-                </p>
-                <div className="relative mt-6 h-1 w-44 overflow-hidden rounded-full bg-teal-100">
-                  <div className="absolute inset-y-0 w-1/2 animate-[scan_1.2s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-teal-300 via-teal-500 to-cyan-400" />
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="text-sm font-medium text-teal-900/80">
-                  {step === "language"
-                    ? "Choose a language to begin"
-                    : "Results will show up here"}
-                </p>
-                <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                  {step === "language"
-                    ? "Start with the language type, then paste your snippet in the editor."
-                    : "Hit Review to compare code, open a Diff, and jump from findings to lines."}
-                </p>
-              </>
-            )}
-          </div>
+          <ResultsEmptyState step={step} />
         )}
       </section>
+
+      {showResults && result ? (
+        <section id="review-analytics" className="min-w-0 scroll-mt-24">
+          <SectionLabel
+            step="Step 3 · Analytics"
+            title="Code and finding charts"
+            detail="Compare your snippet to SuggestedCode, then see severity and category mix."
+          />
+          <div
+            className={cn(
+              "transition-[opacity,filter] duration-300",
+              (resultsStale || analyzing) && "opacity-70",
+              analyzing && "pointer-events-none saturate-75"
+            )}
+          >
+            <ReviewAnalytics result={result} baselineCode={baselineCode} />
+          </div>
+        </section>
+      ) : null}
     </div>
   )
 }

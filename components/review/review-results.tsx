@@ -3,13 +3,41 @@
 import { useMemo, useState } from "react"
 import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { FindingCard } from "@/components/review/finding-card"
+import type { ReviewSource } from "@/lib/run-review"
 import type {
   FindingSeverity,
   ReviewFinding,
   ReviewResult,
 } from "@/lib/review-types"
 import { cn } from "@/lib/utils"
+
+const SOURCE_LABELS: Record<ReviewSource, string> = {
+  auto: "Auto",
+  gemini: "Gemini",
+  groq: "Groq",
+  openai: "OpenAI",
+  mock: "Demo",
+}
+
+function severityCounts(findings: ReviewFinding[]) {
+  const counts: Record<FindingSeverity, number> = {
+    critical: 0,
+    warning: 0,
+    info: 0,
+    suggestion: 0,
+  }
+  for (const finding of findings) {
+    counts[finding.severity] += 1
+  }
+  return counts
+}
 
 interface ReviewResultsProps {
   result: ReviewResult
@@ -52,11 +80,16 @@ const cardClass =
 
 export function ReviewSummaryCard({
   result,
+  source,
   className,
 }: {
   result: ReviewResult
+  source?: ReviewSource
   className?: string
 }) {
+  const counts = severityCounts(result.findings)
+  const sourceLabel = source ? SOURCE_LABELS[source] : null
+
   return (
     <section
       className={cn(
@@ -67,26 +100,48 @@ export function ReviewSummaryCard({
     >
       <div className="grid gap-5 sm:grid-cols-[120px_1fr] sm:gap-5">
         <div className="flex flex-col items-center justify-center gap-2">
-          <div
-            className="relative grid size-[96px] place-items-center rounded-full sm:size-[108px]"
-            style={{
-              background: `conic-gradient(#0d9488 ${result.score * 3.6}deg, #e5e7eb 0deg)`,
-            }}
-          >
-            <div className="grid size-[74px] place-items-center rounded-full bg-white text-center shadow-inner sm:size-[84px]">
-              <div>
-                <p
-                  className="text-2xl font-semibold tabular-nums tracking-tight text-foreground animate-in zoom-in-50 duration-700 sm:text-3xl"
-                  key={result.score}
+          <TooltipProvider delay={200}>
+            <Tooltip>
+              <TooltipTrigger
+                className="cursor-help rounded-full outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+                aria-label={`Quality score ${result.score} out of 100`}
+              >
+                <div
+                  className="relative grid size-[96px] place-items-center rounded-full sm:size-[108px]"
+                  style={{
+                    background: `conic-gradient(#0d9488 ${result.score * 3.6}deg, #e5e7eb 0deg)`,
+                  }}
                 >
-                  {result.score}
-                </p>
-                <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                  score
-                </p>
-              </div>
-            </div>
-          </div>
+                  <div className="grid size-[74px] place-items-center rounded-full bg-white text-center shadow-inner sm:size-[84px]">
+                    <div>
+                      <p
+                        className="text-2xl font-semibold tabular-nums tracking-tight text-foreground animate-in zoom-in-50 duration-700 sm:text-3xl"
+                        key={result.score}
+                      >
+                        {result.score}
+                      </p>
+                      <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                        score
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                sideOffset={8}
+                className="max-w-[220px] rounded-xl bg-teal-950 px-3 py-2 text-left text-[11px] leading-relaxed text-teal-50"
+              >
+                Quality score from 0–100. Higher means healthier code with fewer
+                serious bugs, security risks, and maintainability issues.
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          {sourceLabel ? (
+            <span className="rounded-full border border-teal-900/10 bg-teal-500/8 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-teal-900/70">
+              {sourceLabel}
+            </span>
+          ) : null}
         </div>
 
         <div className="min-w-0 space-y-3">
@@ -112,6 +167,29 @@ export function ReviewSummaryCard({
             <span suppressHydrationWarning>
               {new Date(result.analyzedAt).toLocaleTimeString()}
             </span>
+          </div>
+
+          <div className="flex flex-wrap gap-1.5 pt-0.5">
+            {(
+              [
+                ["critical", counts.critical, "bg-rose-500/12 text-rose-800"],
+                ["warning", counts.warning, "bg-amber-500/12 text-amber-900"],
+                ["info", counts.info, "bg-sky-500/12 text-sky-900"],
+                ["tips", counts.suggestion, "bg-teal-500/12 text-teal-900"],
+              ] as const
+            ).map(([label, count, styles]) => (
+              <span
+                key={label}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium tabular-nums",
+                  styles,
+                  count === 0 && "opacity-40"
+                )}
+              >
+                {label}
+                <span className="opacity-70">{count}</span>
+              </span>
+            ))}
           </div>
         </div>
       </div>
@@ -207,7 +285,7 @@ export function FindingsCard({
         <div className="flex flex-col gap-3 pb-2">
           {filtered.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted-foreground">
-              No findings in this filter.
+              Nothing matched this severity. Try All or another filter.
             </p>
           ) : (
             filtered.map((finding, index) => (

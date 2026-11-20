@@ -7,9 +7,24 @@ import { Alert02Icon, Cancel01Icon } from "@hugeicons/core-free-icons"
 
 function getErrorCopy(message: string): { title: string; detail: string } {
   const lower = message.toLowerCase()
-  const isGroq = lower.includes("groq")
-  const isOpenAi = lower.includes("openai")
-  const providerLabel = isGroq ? "Groq" : isOpenAi ? "OpenAI" : "Gemini"
+  const mentionsGroq = lower.includes("groq")
+  const mentionsGemini = lower.includes("gemini")
+  const mentionsOpenAi = lower.includes("openai")
+  const isAuto =
+    lower.includes("auto") ||
+    (mentionsGroq && mentionsGemini) ||
+    lower.includes("both providers") ||
+    lower.includes("fallback")
+
+  const providerLabel = isAuto
+    ? "Auto"
+    : mentionsGroq
+      ? "Groq"
+      : mentionsOpenAi
+        ? "OpenAI"
+        : mentionsGemini
+          ? "Gemini"
+          : "the AI"
 
   if (lower.includes("no credits") || lower.includes("insufficient_quota")) {
     return {
@@ -28,7 +43,9 @@ function getErrorCopy(message: string): { title: string; detail: string } {
       title: "Model unavailable",
       detail: message.trim()
         ? message.trim()
-        : `The selected ${providerLabel} model isn’t available for this key. Update the model in .env, then retry.`,
+        : isAuto
+          ? "One of the Auto models isn’t available for this key. Check GROQ_MODEL / GEMINI_MODEL, then retry."
+          : `The selected ${providerLabel} model isn’t available for this key. Update the model in .env, then retry.`,
     }
   }
 
@@ -42,19 +59,23 @@ function getErrorCopy(message: string): { title: string; detail: string } {
     lower.includes("rate limit")
   ) {
     return {
-      title: "AI is taking too long",
+      title: isAuto ? "Providers are busy" : "AI is taking too long",
       detail: message.trim()
         ? message.trim()
-        : `${providerLabel} didn’t finish in time — often high demand or a large snippet. Wait a moment, try a shorter piece of code, then retry.`,
+        : isAuto
+          ? "Gemini and/or Groq didn’t finish in time — often high demand or a large snippet. Wait a moment, try a shorter piece of code, then retry."
+          : `${providerLabel} didn’t finish in time — often high demand or a large snippet. Wait a moment, try a shorter piece of code, then retry.`,
     }
   }
 
   if (lower.includes("api key") || lower.includes("401") || lower.includes("403")) {
     return {
-      title: "API key issue",
+      title: isAuto ? "API keys need a check" : "API key issue",
       detail: message.trim()
         ? message.trim()
-        : `We couldn’t authenticate with ${providerLabel}. Check the API key in .env, then retry.`,
+        : isAuto
+          ? "We couldn’t authenticate with Gemini and/or Groq. Confirm both keys on Vercel (or in .env locally), redeploy if needed, then retry."
+          : `We couldn’t authenticate with ${providerLabel}. Check the API key in .env, then retry.`,
     }
   }
 
@@ -67,10 +88,12 @@ function getErrorCopy(message: string): { title: string; detail: string } {
   }
 
   return {
-    title: "Review couldn’t finish",
+    title: isAuto ? "Auto review couldn’t finish" : "Review couldn’t finish",
     detail:
       message.trim() ||
-      "Something went wrong while analyzing your code. Please try again in a moment.",
+      (isAuto
+        ? "Something went wrong while merging Gemini and Groq. Please try again in a moment."
+        : "Something went wrong while analyzing your code. Please try again in a moment."),
   }
 }
 

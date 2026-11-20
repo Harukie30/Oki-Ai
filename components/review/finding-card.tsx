@@ -114,26 +114,28 @@ export function FindingCard({
       )}
       style={{ animationDelay: `${index * 80}ms` }}
     >
-      <div className="mb-2 flex flex-wrap items-center gap-2">
+      <div className="mb-1.5 flex items-start justify-between gap-2">
+        <h3 className="text-sm font-semibold tracking-tight text-foreground">
+          {finding.title}
+        </h3>
+        {interactive ? (
+          <span className="shrink-0 pt-0.5 text-[10px] font-medium uppercase tracking-wide text-teal-700/50">
+            Jump
+          </span>
+        ) : null}
+      </div>
+      <div className="mb-2 flex flex-wrap items-center gap-1.5">
         <Badge className={styles.badge} variant="secondary">
           {finding.severity}
         </Badge>
         <Badge variant="outline" className="capitalize">
           {finding.category}
         </Badge>
-        <span className="font-mono text-xs text-muted-foreground">
+        <span className="font-mono text-[11px] text-muted-foreground">
           line {finding.line}
         </span>
-        {interactive ? (
-          <span className="ml-auto text-[10px] font-medium uppercase tracking-wide text-teal-700/50">
-            Jump
-          </span>
-        ) : null}
       </div>
-      <h3 className="text-sm font-semibold tracking-tight text-foreground">
-        {finding.title}
-      </h3>
-      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+      <p className="text-sm leading-relaxed text-muted-foreground">
         {finding.detail}
       </p>
       <p className="mt-3 rounded-lg bg-teal-500/8 px-3 py-2 text-sm text-teal-950 dark:text-teal-100">
