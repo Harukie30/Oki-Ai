@@ -1,15 +1,54 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import Link from "next/link"
 import { AccountControls } from "@/components/auth/account-controls"
+import { useOkiAuth } from "@/components/auth/oki-auth-provider"
 import { OkiAiLogo } from "@/components/brand/oki-ai-logo"
+import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 import { AutoHideHeader } from "@/components/layout/auto-hide-header"
 import { ReviewWorkspace } from "@/components/review/review-workspace"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-export function ReviewShell() {
+function WorkspaceFallback() {
+  return (
+    <div className="rounded-2xl border border-teal-700/15 bg-white/80 px-4 py-6 text-sm text-teal-950/60">
+      Loading workspace…
+    </div>
+  )
+}
+
+function ReviewWorkspaceBody({ compactIntro }: { compactIntro?: boolean }) {
+  return (
+    <>
+      <div className={cn(compactIntro ? "max-w-2xl" : "max-w-2xl")}>
+        <h1
+          className={cn(
+            "font-semibold tracking-tight text-teal-950",
+            compactIntro ? "text-xl sm:text-2xl" : "text-2xl sm:text-4xl"
+          )}
+        >
+          AI code review
+        </h1>
+        <p
+          className={cn(
+            "mt-2 leading-relaxed text-teal-950/65",
+            compactIntro ? "text-sm" : "text-sm sm:text-base"
+          )}
+        >
+          Write code, compare the suggested fix, then jump findings or apply
+          local SuggestedCode before you commit to your codebase.
+        </p>
+      </div>
+      <Suspense fallback={<WorkspaceFallback />}>
+        <ReviewWorkspace />
+      </Suspense>
+    </>
+  )
+}
+
+function GuestReviewShell() {
   const [navOpen, setNavOpen] = useState(false)
   const [coarsePointer, setCoarsePointer] = useState(false)
 
@@ -26,7 +65,6 @@ export function ReviewShell() {
     const prevHtmlHeight = html.style.height
     const prevBodyHeight = body.style.height
 
-    // Review page owns scrolling via <main>; keep the window scrollbar gone.
     html.style.overflow = "hidden"
     body.style.overflow = "hidden"
     html.style.height = "100%"
@@ -84,17 +122,33 @@ export function ReviewShell() {
             : "overflow-y-auto overscroll-contain"
         )}
       >
-        <div className="max-w-2xl">
-          <h1 className="text-2xl font-semibold tracking-tight text-teal-950 sm:text-4xl">
-            AI code review
-          </h1>
-          <p className="mt-2 text-sm leading-relaxed text-teal-950/65 sm:text-base">
-            Write code, compare the suggested fix, then jump findings or apply
-            local SuggestedCode before you commit to your codebase.
-          </p>
-        </div>
-        <ReviewWorkspace />
+        <ReviewWorkspaceBody />
       </main>
     </div>
   )
+}
+
+export function ReviewShell() {
+  const { isSignedIn, isLoaded } = useOkiAuth()
+
+  if (!isLoaded) {
+    return (
+      <div className="relative flex h-svh min-h-0 flex-1 items-center justify-center bg-[#f4fbfa] text-sm text-teal-950/50">
+        Loading…
+      </div>
+    )
+  }
+
+  if (isSignedIn) {
+    return (
+      <DashboardShell
+        section="review"
+        className="flex flex-col gap-5 px-4 py-5 sm:gap-8 sm:px-6 sm:py-6 lg:px-8"
+      >
+        <ReviewWorkspaceBody compactIntro />
+      </DashboardShell>
+    )
+  }
+
+  return <GuestReviewShell />
 }

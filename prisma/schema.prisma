@@ -8,18 +8,40 @@ datasource db {
 }
 
 model User {
-  id            String    @id
+  id            String        @id
   name          String
   email         String
-  emailVerified Boolean   @default(false)
+  emailVerified Boolean       @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   sessions      Session[]
   accounts      Account[]
+  reviews       SavedReview[]
 
   @@unique([email])
   @@map("user")
+}
+
+model SavedReview {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String
+  language     String
+  provider     String
+  code         String
+  revisedCode  String
+  score        Int
+  aiLikelihood Int
+  summary      String
+  findings     String
+  analyzedAt   DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@map("saved_review")
 }
 
 model Session {

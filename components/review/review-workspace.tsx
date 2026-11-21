@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import { useEffect, useState, type ReactNode } from "react"
+import { useSearchParams } from "next/navigation"
 import { useOkiAuth } from "@/components/auth/oki-auth-provider"
 import { CodeDiffPanel } from "@/components/review/code-diff-panel"
 import { CodeInput } from "@/components/review/code-input"
@@ -28,6 +29,10 @@ import { SuggestedFixIde } from "@/components/review/suggested-fix-ide"
 import { getReviewExample } from "@/lib/review-examples"
 import { runReview, type ReviewResponse } from "@/lib/run-review"
 import {
+  fetchSavedReview,
+  saveReviewToAccount,
+} from "@/lib/saved-reviews-client"
+import {
   REVIEW_MAX_LINES,
   clampCodeToMaxLines,
   countCodeLines,
@@ -42,6 +47,7 @@ import {
   ArrowDown01Icon,
   ArrowUp01Icon,
   Settings02Icon,
+  Tick02Icon,
 } from "@hugeicons/core-free-icons"
 
 type WorkspaceStep = "language" | "paste"
@@ -204,6 +210,9 @@ function ResultsEmptyState({
 }
 
 export function ReviewWorkspace() {
+  const searchParams = useSearchParams()
+  const savedIdParam = searchParams.get("id")
+
   const [step, setStep] = useState<WorkspaceStep>("language")
   const [code, setCode] = useState("")
   const [language, setLanguage] = useState<CodeLanguage | null>(null)
@@ -226,6 +235,11 @@ export function ReviewWorkspace() {
   const [codePreserved, setCodePreserved] = useState(false)
   const [registerOpen, setRegisterOpen] = useState(false)
   const [guestRemaining, setGuestRemaining] = useState(GUEST_REVIEW_LIMIT)
+  const [savedReviewId, setSavedReviewId] = useState<string | null>(null)
+  const [accountSaveState, setAccountSaveState] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle")
+  const [loadingSaved, setLoadingSaved] = useState(Boolean(savedIdParam))
 
   const { isSignedIn, isLoaded: authLoaded } = useOkiAuth()
   const isGuest = authLoaded && !isSignedIn
@@ -258,6 +272,59 @@ export function ReviewWorkspace() {
   useEffect(() => {
     setGuestRemaining(getGuestReviewsRemaining())
   }, [isSignedIn])
+
+  useEffect(() => {
+    if (!savedIdParam) {
+      setLoadingSaved(false)
+      return
+    }
+    if (!authLoaded) return
+
+    let cancelled = false
+
+    async function hydrate() {
+      if (!isSignedIn) {
+        if (!cancelled) {
+          setError("Sign in to open a saved review.")
+          setLoadingSaved(false)
+        }
+        return
+      }
+
+      setLoadingSaved(true)
+      try {
+        const saved = await fetchSavedReview(savedIdParam!)
+        if (cancelled) return
+        setLanguage(saved.result.language)
+        setCode(saved.code)
+        setBaselineCode(saved.code)
+        setReviewedCode(saved.code)
+        setResult(saved.result)
+        setStatus("ready")
+        setStep("paste")
+        setSavedReviewId(saved.id)
+        setAccountSaveState("saved")
+        setCodePreserved(true)
+        setCompareMode("editors")
+        setError(null)
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Could not open that saved review."
+          )
+        }
+      } finally {
+        if (!cancelled) setLoadingSaved(false)
+      }
+    }
+
+    void hydrate()
+    return () => {
+      cancelled = true
+    }
+  }, [savedIdParam, authLoaded, isSignedIn])
 
   function markCodeChanged(nextCode: string) {
     const attemptedLines = countCodeLines(nextCode)
@@ -308,8 +375,32 @@ export function ReviewWorkspace() {
       setReviewedCode(code)
       setStatus("ready")
       setCompareMode("editors")
-      setCodePreserved(false)
-      setSaveReminderOpen(true)
+      setSavedReviewId(null)
+      setAccountSaveState("idle")
+
+      if (isSignedIn) {
+        setCodePreserved(true)
+        setSaveReminderOpen(false)
+        setAccountSaveState("saving")
+        try {
+          const saved = await saveReviewToAccount({
+            code,
+            language,
+            provider,
+            result: next,
+          })
+          setSavedReviewId(saved.id)
+          setAccountSaveState("saved")
+        } catch {
+          setAccountSaveState("error")
+          setCodePreserved(false)
+          setSaveReminderOpen(true)
+        }
+      } else {
+        setCodePreserved(false)
+        setSaveReminderOpen(true)
+      }
+
       if (isGuest) {
         incrementGuestReviewCount()
         setGuestRemaining(getGuestReviewsRemaining())
@@ -386,12 +477,23 @@ export function ReviewWorkspace() {
 
   return (
     <div className="flex min-w-0 flex-col gap-8 sm:gap-10">
+      {loadingSaved ? (
+        <div className="flex items-center gap-3 rounded-2xl border border-teal-700/15 bg-white/90 px-4 py-3 text-sm text-teal-950/75 shadow-sm">
+          <span className="relative flex size-2.5 shrink-0">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-teal-400/70 opacity-75" />
+            <span className="relative inline-flex size-2.5 rounded-full bg-teal-500" />
+          </span>
+          Opening saved review…
+        </div>
+      ) : null}
+
       <ReviewErrorModal
         open={Boolean(error)}
         message={error || ""}
         onClose={() => setError(null)}
         onRetry={() => {
           setError(null)
+          if (savedIdParam) return
           void handleReview()
         }}
       />
@@ -597,8 +699,8 @@ export function ReviewWorkspace() {
               </div>
 
               <ReviewActions
-                analyzing={analyzing}
-                disabled={!readyToReview || !authLoaded}
+                analyzing={analyzing || loadingSaved}
+                disabled={!readyToReview || !authLoaded || loadingSaved}
                 hasResult={showResults}
                 stale={resultsStale}
                 source={result?.source}
@@ -607,6 +709,25 @@ export function ReviewWorkspace() {
                 guestLimit={GUEST_REVIEW_LIMIT}
                 onReview={handleReview}
               />
+
+              {accountSaveState === "saving" ? (
+                <p className="text-xs text-teal-800/55">Saving to your account…</p>
+              ) : null}
+              {accountSaveState === "saved" && savedReviewId ? (
+                <p className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-800/70">
+                  <HugeiconsIcon
+                    icon={Tick02Icon}
+                    strokeWidth={2}
+                    className="size-3.5"
+                  />
+                  Saved to your account
+                </p>
+              ) : null}
+              {accountSaveState === "error" ? (
+                <p className="text-xs text-amber-800/80">
+                  Couldn’t save to your account — you can still copy or download.
+                </p>
+              ) : null}
             </div>
           </div>
         )}
