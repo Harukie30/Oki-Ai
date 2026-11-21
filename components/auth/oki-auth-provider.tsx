@@ -5,13 +5,22 @@ import {
   useCallback,
   useContext,
   useMemo,
+  useRef,
+  useState,
   type ReactNode,
 } from "react"
+import {
+  AuthLoadingScreen,
+  type AuthTransitionKind,
+} from "@/components/auth/auth-loading-screen"
 import { authClient } from "@/lib/auth-client"
+
+const MIN_TRANSITION_MS = 650
 
 type OkiAuthValue = {
   isSignedIn: boolean
   isLoaded: boolean
+  authTransition: AuthTransitionKind | null
   user: {
     id: string
     name: string
@@ -20,18 +29,29 @@ type OkiAuthValue = {
   } | null
   refresh: () => Promise<void>
   signOut: () => Promise<void>
+  beginAuthTransition: (kind: AuthTransitionKind) => void
+  endAuthTransition: () => Promise<void>
 }
 
 const OkiAuthContext = createContext<OkiAuthValue>({
   isSignedIn: false,
   isLoaded: false,
+  authTransition: null,
   user: null,
   refresh: async () => undefined,
   signOut: async () => undefined,
+  beginAuthTransition: () => undefined,
+  endAuthTransition: async () => undefined,
 })
 
 export function useOkiAuth() {
   return useContext(OkiAuthContext)
+}
+
+function wait(ms: number) {
+  return new Promise<void>((resolve) => {
+    window.setTimeout(resolve, ms)
+  })
 }
 
 /**
@@ -41,6 +61,9 @@ export function useOkiAuth() {
  */
 export function OkiAuthProvider({ children }: { children: ReactNode }) {
   const { data, isPending, refetch } = authClient.useSession()
+  const [authTransition, setAuthTransition] =
+    useState<AuthTransitionKind | null>(null)
+  const transitionStartedAtRef = useRef(0)
 
   const user = useMemo<OkiAuthValue["user"]>(() => {
     const next = data?.user
@@ -53,27 +76,60 @@ export function OkiAuthProvider({ children }: { children: ReactNode }) {
     }
   }, [data?.user])
 
+  const beginAuthTransition = useCallback((kind: AuthTransitionKind) => {
+    transitionStartedAtRef.current = Date.now()
+    setAuthTransition(kind)
+  }, [])
+
+  const endAuthTransition = useCallback(async () => {
+    const elapsed = Date.now() - transitionStartedAtRef.current
+    if (elapsed < MIN_TRANSITION_MS) {
+      await wait(MIN_TRANSITION_MS - elapsed)
+    }
+    setAuthTransition(null)
+    transitionStartedAtRef.current = 0
+  }, [])
+
   const refresh = useCallback(async () => {
     await refetch()
   }, [refetch])
 
   const signOut = useCallback(async () => {
-    await authClient.signOut()
-    await refetch()
-  }, [refetch])
+    beginAuthTransition("signing-out")
+    try {
+      await authClient.signOut()
+      await refetch()
+    } finally {
+      await endAuthTransition()
+    }
+  }, [beginAuthTransition, endAuthTransition, refetch])
 
   const value = useMemo<OkiAuthValue>(
     () => ({
       isSignedIn: Boolean(user),
       isLoaded: !isPending,
+      authTransition,
       user,
       refresh,
       signOut,
+      beginAuthTransition,
+      endAuthTransition,
     }),
-    [isPending, user, refresh, signOut]
+    [
+      isPending,
+      authTransition,
+      user,
+      refresh,
+      signOut,
+      beginAuthTransition,
+      endAuthTransition,
+    ]
   )
 
   return (
-    <OkiAuthContext.Provider value={value}>{children}</OkiAuthContext.Provider>
+    <OkiAuthContext.Provider value={value}>
+      {children}
+      {authTransition ? <AuthLoadingScreen kind={authTransition} /> : null}
+    </OkiAuthContext.Provider>
   )
 }

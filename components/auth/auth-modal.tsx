@@ -38,7 +38,7 @@ export function AuthModal({
   onClose,
   onSuccess,
 }: AuthModalProps) {
-  const { refresh } = useOkiAuth()
+  const { refresh, beginAuthTransition, endAuthTransition } = useOkiAuth()
   const [mounted, setMounted] = useState(false)
   const [mode, setMode] = useState<AuthMode>(initialMode)
   const [name, setName] = useState("")
@@ -80,6 +80,7 @@ export function AuthModal({
     event.preventDefault()
     setError(null)
     setSubmitting(true)
+    beginAuthTransition(mode === "sign-up" ? "signing-up" : "signing-in")
 
     try {
       if (mode === "sign-up") {
@@ -90,6 +91,7 @@ export function AuthModal({
         })
         if (result.error) {
           setError(result.error.message || "Could not create account")
+          await endAuthTransition()
           return
         }
       } else {
@@ -99,6 +101,7 @@ export function AuthModal({
         })
         if (result.error) {
           setError(result.error.message || "Could not sign in")
+          await endAuthTransition()
           return
         }
       }
@@ -107,8 +110,10 @@ export function AuthModal({
       onSuccess?.()
       onClose()
       setPassword("")
+      await endAuthTransition()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed")
+      await endAuthTransition()
     } finally {
       setSubmitting(false)
     }
