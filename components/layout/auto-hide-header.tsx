@@ -160,11 +160,17 @@ export function AutoHideHeader({
     >
       <header
         ref={headerRef}
-        onFocusCapture={() => setVisible(true)}
+        onFocusCapture={(event) => {
+          // Portaled modals (auth) still bubble through React; only open
+          // when focus is actually inside the header DOM.
+          if (headerRef.current?.contains(event.target as Node)) {
+            setVisible(true)
+          }
+        }}
         onBlurCapture={(event) => {
-          if (
-            !event.currentTarget.contains(event.relatedTarget as Node | null)
-          ) {
+          const next = event.relatedTarget as Node | null
+          if (next && headerRef.current?.contains(next)) return
+          if (headerRef.current?.contains(event.target as Node)) {
             setVisible(forceVisible)
           }
         }}

@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import { useEffect, useState, type ReactNode } from "react"
+import { useOkiAuth } from "@/components/auth/oki-auth-provider"
 import { CodeDiffPanel } from "@/components/review/code-diff-panel"
 import { CodeInput } from "@/components/review/code-input"
 import { LanguagePicker } from "@/components/review/language-picker"
@@ -11,7 +12,14 @@ import { ReviewAnalytics } from "@/components/review/review-analytics"
 import { ReviewErrorModal } from "@/components/review/review-error-modal"
 import { ReviewLineLimitModal } from "@/components/review/review-line-limit-modal"
 import { ReviewLineLimitNotice } from "@/components/review/review-line-limit-notice"
+import { ReviewRegisterModal } from "@/components/review/review-register-modal"
 import { ReviewSaveReminderModal } from "@/components/review/review-save-reminder-modal"
+import {
+  GUEST_REVIEW_LIMIT,
+  canGuestReview,
+  getGuestReviewsRemaining,
+  incrementGuestReviewCount,
+} from "@/lib/guest-usage"
 import {
   FindingsCard,
   ReviewSummaryCard,
@@ -216,6 +224,11 @@ export function ReviewWorkspace() {
   }>({ open: false, attemptedLines: 0 })
   const [saveReminderOpen, setSaveReminderOpen] = useState(false)
   const [codePreserved, setCodePreserved] = useState(false)
+  const [registerOpen, setRegisterOpen] = useState(false)
+  const [guestRemaining, setGuestRemaining] = useState(GUEST_REVIEW_LIMIT)
+
+  const { isSignedIn, isLoaded: authLoaded } = useOkiAuth()
+  const isGuest = authLoaded && !isSignedIn
 
   const analyzing = status === "analyzing"
   const codeLineCount = countCodeLines(code)
@@ -241,6 +254,10 @@ export function ReviewWorkspace() {
     window.addEventListener("beforeunload", onBeforeUnload)
     return () => window.removeEventListener("beforeunload", onBeforeUnload)
   }, [warnOnLeave])
+
+  useEffect(() => {
+    setGuestRemaining(getGuestReviewsRemaining())
+  }, [isSignedIn])
 
   function markCodeChanged(nextCode: string) {
     const attemptedLines = countCodeLines(nextCode)
@@ -271,6 +288,11 @@ export function ReviewWorkspace() {
       return
     }
 
+    if (isGuest && !canGuestReview()) {
+      setRegisterOpen(true)
+      return
+    }
+
     setStatus("analyzing")
     setError(null)
     setActiveFindingId(null)
@@ -288,6 +310,10 @@ export function ReviewWorkspace() {
       setCompareMode("editors")
       setCodePreserved(false)
       setSaveReminderOpen(true)
+      if (isGuest) {
+        incrementGuestReviewCount()
+        setGuestRemaining(getGuestReviewsRemaining())
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Review failed")
       setStatus(result ? "ready" : "idle")
@@ -381,6 +407,11 @@ export function ReviewWorkspace() {
       <ReviewSaveReminderModal
         open={saveReminderOpen}
         onClose={() => setSaveReminderOpen(false)}
+      />
+
+      <ReviewRegisterModal
+        open={registerOpen}
+        onClose={() => setRegisterOpen(false)}
       />
 
       <section id="review-compare" className="relative min-w-0 scroll-mt-24">
@@ -567,11 +598,13 @@ export function ReviewWorkspace() {
 
               <ReviewActions
                 analyzing={analyzing}
-                disabled={!readyToReview}
+                disabled={!readyToReview || !authLoaded}
                 hasResult={showResults}
                 stale={resultsStale}
                 source={result?.source}
                 selectedProvider={provider}
+                guestRemaining={isGuest ? guestRemaining : null}
+                guestLimit={GUEST_REVIEW_LIMIT}
                 onReview={handleReview}
               />
             </div>

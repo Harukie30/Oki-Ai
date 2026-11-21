@@ -35,6 +35,9 @@ interface ReviewActionsProps {
   stale?: boolean
   source?: ReviewSource
   selectedProvider?: ReviewProvider
+  /** Remaining free guest reviews; omit when signed in. */
+  guestRemaining?: number | null
+  guestLimit?: number
   onReview: () => void
   className?: string
 }
@@ -46,10 +49,14 @@ export function ReviewActions({
   stale = false,
   source,
   selectedProvider = "auto",
+  guestRemaining = null,
+  guestLimit,
   onReview,
   className,
 }: ReviewActionsProps) {
   const activeLabel = providerLabel(source ?? selectedProvider)
+  const showGuestQuota =
+    typeof guestRemaining === "number" && typeof guestLimit === "number"
 
   const hint = analyzing
     ? `Scanning with ${activeLabel} for bugs, security risks, and style issues…`
@@ -59,7 +66,9 @@ export function ReviewActions({
         ? `Last review used ${activeLabel}. Change the model or code, then re-review.`
         : source === "mock"
           ? "Mock mode — no AI key ran this time. Check your .env keys."
-          : `Ready to review with ${activeLabel}.`
+          : showGuestQuota
+            ? `Ready to review with ${activeLabel}. ${guestRemaining} of ${guestLimit} free left.`
+            : `Ready to review with ${activeLabel}.`
 
   return (
     <div
@@ -68,14 +77,28 @@ export function ReviewActions({
         className
       )}
     >
-      <p
-        className={cn(
-          "order-2 text-sm sm:order-1",
-          stale ? "font-medium text-amber-900/80" : "text-muted-foreground"
-        )}
-      >
-        {hint}
-      </p>
+      <div className="order-2 flex min-w-0 flex-col gap-1.5 sm:order-1">
+        <p
+          className={cn(
+            "text-sm",
+            stale ? "font-medium text-amber-900/80" : "text-muted-foreground"
+          )}
+        >
+          {hint}
+        </p>
+        {showGuestQuota ? (
+          <p
+            className={cn(
+              "text-[11px] font-medium tabular-nums",
+              guestRemaining === 0
+                ? "text-amber-800/85"
+                : "text-teal-800/55"
+            )}
+          >
+            Free reviews · {guestRemaining} / {guestLimit} remaining
+          </p>
+        ) : null}
+      </div>
       <Button
         size="lg"
         onClick={onReview}

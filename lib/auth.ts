@@ -1,0 +1,23 @@
+import { betterAuth } from "better-auth"
+import { prismaAdapter } from "better-auth/adapters/prisma"
+import { nextCookies } from "better-auth/next-js"
+import { prisma } from "@/lib/prisma"
+
+export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  secret: process.env.BETTER_AUTH_SECRET,
+  database: prismaAdapter(prisma, {
+    provider: "sqlite",
+  }),
+  emailAndPassword: {
+    enabled: true,
+  },
+  trustedOrigins: [
+    process.env.BETTER_AUTH_URL || "http://localhost:3000",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+  ],
+  plugins: [nextCookies()],
+})
+
+export type Session = typeof auth.$Infer.Session

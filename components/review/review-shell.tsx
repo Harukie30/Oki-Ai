@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { AccountControls } from "@/components/auth/account-controls"
 import { OkiAiLogo } from "@/components/brand/oki-ai-logo"
 import { AutoHideHeader } from "@/components/layout/auto-hide-header"
 import { ReviewWorkspace } from "@/components/review/review-workspace"
@@ -61,15 +62,18 @@ export function ReviewShell() {
             review
           </span>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          nativeButton={false}
-          render={<Link href="/" />}
-        >
-          <span className="sm:hidden">Home</span>
-          <span className="hidden sm:inline">Back to home</span>
-        </Button>
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <AccountControls />
+          <Button
+            variant="outline"
+            size="sm"
+            nativeButton={false}
+            render={<Link href="/" />}
+          >
+            <span className="sm:hidden">Home</span>
+            <span className="hidden sm:inline">Back to home</span>
+          </Button>
+        </div>
       </AutoHideHeader>
 
       <main

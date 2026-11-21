@@ -5,16 +5,42 @@ import { ReviewLoadingScreen } from "@/components/review/review-loading-screen"
 import { cn } from "@/lib/utils"
 
 const ENTRANCE_MS = 1100
+const SEEN_KEY = "oki-review-entrance-seen"
+
+function hasSeenEntrance() {
+  try {
+    return sessionStorage.getItem(SEEN_KEY) === "1"
+  } catch {
+    return false
+  }
+}
+
+function markEntranceSeen() {
+  try {
+    sessionStorage.setItem(SEEN_KEY, "1")
+  } catch {
+    // ignore quota / private mode
+  }
+}
 
 /**
- * Brief branded splash when entering the review route,
- * so client navigations still feel intentional.
+ * Brief branded splash when entering the review route.
+ * Marks itself seen immediately so remount storms cannot trap
+ * the user on an endless loading animation.
  */
 export function ReviewEntrance({ children }: { children: ReactNode }) {
   const [visible, setVisible] = useState(true)
   const [exiting, setExiting] = useState(false)
 
   useEffect(() => {
+    if (hasSeenEntrance()) {
+      setVisible(false)
+      return
+    }
+
+    // Claim the splash up front so a remount mid-timer skips it.
+    markEntranceSeen()
+
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches

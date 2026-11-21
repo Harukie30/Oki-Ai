@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono, Figtree } from "next/font/google"
+import { OkiAuthProvider } from "@/components/auth/oki-auth-provider"
 import "./globals.css"
 import { cn } from "@/lib/utils"
 
@@ -17,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Oki Ai reviewer ",
+    default: "Oki-Ai",
     template: "%s — Oki-Ai",
   },
   description:
@@ -44,7 +45,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       )}
     >
       <body className="flex min-h-full flex-col overflow-x-clip">
-        {children}
+        <OkiAuthProvider>{children}</OkiAuthProvider>
       </body>
     </html>
   )
